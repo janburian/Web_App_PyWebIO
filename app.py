@@ -19,6 +19,7 @@ def get_user_info():
       input('Input your email', name='email', type=TEXT, required=True, validate=check_email)
     ])
     put_text(info['name'], info['email'])
+
     return info
 
 def upload_data_page():
@@ -29,7 +30,7 @@ def upload_data_page():
 
     return data
 
-def save_data(images): # TODO: saving data to folder
+def save_czi_files(images): # TODO: saving data to folder
     for i in range(len(images)):
         img = images[i]
         open(img['filename'], 'wb').write(img['content'])
@@ -47,7 +48,7 @@ if __name__=="__main__":
 
     model_option = ""
 
-    save_data(czi_files)
+    save_czi_files(czi_files)
 
     if (operation == 'Predict'):
         model_option = select("Choose model or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own']),
