@@ -4,6 +4,9 @@ from pywebio.input import *
 from pywebio.output import *
 import re
 
+import czi_to_jpg
+
+
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if (re.fullmatch(regex, email)):
@@ -18,11 +21,10 @@ def get_user_info():
     put_text(info['name'], info['email'])
     return info
 
-def main_page():
+def upload_data_page():
     data = input_group("Main page", [
         file_upload("Upload .czi files:", accept=".czi", multiple=True, required=True, name="imgs"),
-        radio("Choose one option", options=['predict', 'train'], required=True, name="operation"),
-        select("Choose model", ['model_1', 'model_2', 'model_3'], required=True, name="model")
+        radio("Choose one option", options=['Predict', 'Train'], required=True, name="operation"),
     ])
 
     return data
@@ -38,14 +40,25 @@ def processing_data():
 
 if __name__=="__main__":
     user_info = get_user_info()
-    data = main_page()
+    data = upload_data_page()
 
     czi_files = data['imgs']
     operation = data['operation']
-    model = data['model']
+
+    model_option = ""
 
     save_data(czi_files)
 
+    if (operation == 'Predict'):
+        model_option = select("Choose model or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own']),
+
+        if (model_option[0] == 'upload_own'):
+           own_model = file_upload("Upload your own model:", accept=".pth")
+           open(own_model['filename'], 'wb').write(own_model['content'])
+
+
+
+    processing_data()
 
     print()
 
