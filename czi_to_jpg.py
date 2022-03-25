@@ -48,10 +48,10 @@ def export_czi_annotations_to_jpg(path_annotations, annotation_name, path_images
 
 # Loading .czi annotations
 path_annotations = Path(
-    r"H:\BP\data\dataset_maxi\czi_files_predict"
+    r"H:\BP\data\dataset_test\czi_files_predict"
 )  # path to main directory, that is where .czi files are
 path_images = Path(
-    r"H:\BP\datasets\dataset_maxi\dataset_maxi_prediction"
+    r"H:\BP\datasets\dataset_test\predict_images"
 )  # path to directory, where the images will be saved
 annotation_name = "annotation"
 
