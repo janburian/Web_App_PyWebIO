@@ -1,10 +1,18 @@
 import os
+import sys
+import skimage.io
 
 from pywebio.input import *
 from pywebio.output import *
 import re
 
-import czi_to_jpg
+from pathlib import Path
+
+
+path_to_script = Path("~/projects/scaffan/").expanduser()
+sys.path.insert(0, str(path_to_script))
+import scaffan.image
+
 
 
 def check_email(email):
@@ -31,12 +39,39 @@ def upload_data_page():
     return data
 
 def save_czi_files(images): # TODO: saving data to folder
-    for i in range(len(images)):
-        img = images[i]
+    for img in images:
         open(img['filename'], 'wb').write(img['content'])
 
-def processing_data():
-    pass
+def get_czi_file_names(images):
+    czi_file_names = []
+
+    for img in images:
+        czi_file_names.append(img['filename'])
+
+    return czi_file_names
+
+def czi_to_jpg(czi_files, czi_file_names):
+    path_images = Path(
+        r"C:\Users\janbu\Desktop"
+    )  # path to directory, where the images will be saved
+
+    index = 0
+    while index < len(czi_files):
+        fn_str = (czi_file_names[index])
+        fn_path = Path(fn_str)
+        if not fn_path.exists():
+            break
+        print(f"filename: {fn_path} {fn_path.exists()}")
+
+        anim = scaffan.image.AnnotatedImage(path=fn_str)
+
+        view = anim.get_full_view(
+            pixelsize_mm=[0.0003, 0.0003]
+        )  # wanted pixelsize in mm in view
+        img = view.get_raster_image()
+        os.makedirs(path_images, exist_ok=True)
+        skimage.io.imsave(os.path.join(path_images, str(index).zfill(4) + ".jpg"), img)
+        index += 1
 
 
 if __name__=="__main__":
@@ -49,17 +84,19 @@ if __name__=="__main__":
     model_option = ""
 
     save_czi_files(czi_files)
+    czi_files_names = get_czi_file_names(czi_files)
 
     if (operation == 'Predict'):
-        model_option = select("Choose model or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own']),
+        model_option = select("Choose one of pretrained models or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own'], required=True),
 
         if (model_option[0] == 'upload_own'):
            own_model = file_upload("Upload your own model:", accept=".pth")
            open(own_model['filename'], 'wb').write(own_model['content'])
 
+    elif (operation == 'Train'):
+        pass
 
-
-    processing_data()
+    czi_to_jpg(czi_files, czi_files_names)
 
     print()
 
