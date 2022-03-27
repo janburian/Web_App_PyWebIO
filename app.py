@@ -8,12 +8,10 @@ import re
 
 from pathlib import Path
 
-
 path_to_script = Path("~/projects/scaffan/").expanduser()
 sys.path.insert(0, str(path_to_script))
 import scaffan.image
-
-
+import imma.image
 
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -52,7 +50,7 @@ def get_czi_file_names(images):
 
 def czi_to_jpg(czi_files, czi_file_names):
     path_images = Path(
-        r"C:\Users\janbu\Desktop"
+        r"C:\Users\janbu\OneDrive\Desktop"
     )  # path to directory, where the images will be saved
 
     index = 0
@@ -81,10 +79,10 @@ if __name__=="__main__":
     czi_files = data['imgs']
     operation = data['operation']
 
-    model_option = ""
-
     save_czi_files(czi_files)
     czi_files_names = get_czi_file_names(czi_files)
+
+    czi_to_jpg(czi_files, czi_files_names)
 
     if (operation == 'Predict'):
         model_option = select("Choose one of pretrained models or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own'], required=True),
@@ -96,7 +94,7 @@ if __name__=="__main__":
     elif (operation == 'Train'):
         pass
 
-    czi_to_jpg(czi_files, czi_files_names)
+
 
     print()
 
