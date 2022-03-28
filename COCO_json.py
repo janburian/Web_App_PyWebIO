@@ -131,19 +131,13 @@ def get_annotations_properties(czi_files_directory, annotation_names, pixelsize_
 
     index = 0
     annotation_id = 1
-    category_id = 1  # only one category - cells
+    category_id = 1  # only one category - cells # TODO change?
     image_id = 0
 
     list_annotation_dictionaries = []
 
-    while True:
-        filename_string = (
-                str(czi_files_directory)
-                + "\\"
-                + annotation_names[index]
-                + str(index).zfill(4)
-                + ".czi"
-        )
+    while index < len(annotation_names):
+        filename_string = os.path.join(czi_files_directory, annotation_names[index])
         filename_path = Path(filename_string)
         if not filename_path.exists():
             break
@@ -153,13 +147,6 @@ def get_annotations_properties(czi_files_directory, annotation_names, pixelsize_
             pixelsize_mm=[0.0003, 0.0003]
         )  # wanted pixelsize in mm in view
         annotations = view.annotations
-
-        """ 
-        img = view.get_raster_image()
-        view.plot_annotations()
-        plt.imshow(img)
-        plt.show()
-        """
 
         for j in range(len(annotations)):
             xy_px_list = []
