@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 
 import skimage.io
@@ -21,20 +20,23 @@ import json
 import distutils
 from distutils import dir_util
 
+
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if (re.fullmatch(regex, email)):
         return
     return "Bad format of email."
 
+
 def get_user_info():
     info = input_group("User info", [
-      input('Enter your username', name='username', required=True),
-      input('Enter your email', name='email', type=TEXT, required=True, validate=check_email)
+        input('Enter your username', name='username', required=True),
+        input('Enter your email', name='email', type=TEXT, required=True, validate=check_email)
     ])
     put_text(info['username'], info['email'])
 
     return info
+
 
 def upload_data_page():
     data = input_group("Main page", [
@@ -44,6 +46,7 @@ def upload_data_page():
 
     return data
 
+
 def create_directory(directory_name):
     current_directory = os.getcwd()
     files_directory = os.path.join(current_directory, directory_name)
@@ -51,11 +54,13 @@ def create_directory(directory_name):
         os.makedirs(files_directory, exist_ok=True)
     return files_directory
 
+
 def save_czi_files(czi_files):
     czi_files_directory = create_directory("czi_files")
 
     for file in czi_files:
         open(os.path.join(czi_files_directory, file['filename']), 'wb').write(file['content'])
+
 
 def get_czi_file_names(images):
     czi_file_names = []
@@ -64,6 +69,7 @@ def get_czi_file_names(images):
         czi_file_names.append(img['filename'])
 
     return czi_file_names
+
 
 def czi_to_jpg(czi_files, czi_file_names):
     images_directory = create_directory("images")
@@ -84,6 +90,7 @@ def czi_to_jpg(czi_files, czi_file_names):
         img = view.get_raster_image()
         skimage.io.imsave(os.path.join(images_directory, str(index).zfill(4) + ".jpg"), img)
         index += 1
+
 
 def create_COCO_json(czi_files_names, user_info):
     # Directory of the image dataset
@@ -125,7 +132,7 @@ def create_COCO_json(czi_files_names, user_info):
     list_annotation_dictionaries = COCO_json.get_annotations_properties(
         czi_files_directory, czi_files_names, pixelsize_mm
     )
-    if(len(list_annotation_dictionaries) == 0):
+    if (len(list_annotation_dictionaries) == 0):
         popup('Warning', 'No annotations in czi files.')
 
     data.update({"annotations": list_annotation_dictionaries})
@@ -140,7 +147,7 @@ def copy_images():
 
 
 def create_COCO_dataset(czi_files_names, user_info):
-    json_COCO = create_COCO_json(czi_files_names,  user_info)
+    json_COCO = create_COCO_json(czi_files_names, user_info)
 
     COCO_directory = create_directory("COCO_dataset")
 
@@ -167,6 +174,7 @@ def create_txt_categories_file(list_categories):
             f.write("\n")
     f.close()
 
+
 def define_detectron2_parameters():
     parameters = input_group("Detectron2 parameters: ", [
         input('SOLVER.IMS_PER_BATCH', name='ims_per_batch', placeholder="2", type=NUMBER),
@@ -178,7 +186,7 @@ def define_detectron2_parameters():
     return parameters
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     user_info = get_user_info()
     data = upload_data_page()
 
@@ -199,11 +207,12 @@ if __name__=="__main__":
     '''
 
     if (operation == 'Predict'):
-        model_option = select("Choose one of pretrained models or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own'], required=True),
+        model_option = select("Choose one of pretrained models or upload your own",
+                              ['model_1', 'model_2', 'model_3', 'upload_own'], required=True),
 
         if (model_option[0] == 'upload_own'):
-           own_model = file_upload("Upload your own model:", accept=".pth")
-           open(own_model['filename'], 'wb').write(own_model['content'])
+            own_model = file_upload("Upload your own model:", accept=".pth")
+            open(own_model['filename'], 'wb').write(own_model['content'])
 
     elif (operation == 'Train'):
         categories = get_categories().split(", ")
@@ -214,8 +223,3 @@ if __name__=="__main__":
         parameters = define_detectron2_parameters()
 
     print()
-
-
-
-
-
