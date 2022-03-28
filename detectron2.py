@@ -45,27 +45,23 @@ print(Path(output_data_dir).exists())
 print(Path(output_data_dir))
 
 
-''' 
-Registering coco instances and getting metadata 
-'''
-from detectron2.data.datasets import register_coco_instances
+def register_coco_instances():
+    global cells_metadata, dataset_dicts
 
-register_coco_instances("cells_training", {}, str(input_data_dir_train / "trainval.json"), str(input_data_dir_train / "images"))
-#register_coco_instances("cells_validation", {}, str(input_data_dir_validate / "trainval.json"), str(input_data_dir_validate / "images"))
+    from detectron2.data.datasets import register_coco_instances
+    register_coco_instances("cells_training", {}, os.path.join(input_data_dir_train, "trainval.json"), os.path.join(input_data_dir_train, "images"))
+    # register_coco_instances("cells_validation", {}, str(input_data_dir_validate / "trainval.json"), str(input_data_dir_validate / "images"))
+    cells_metadata = MetadataCatalog.get("cells_training")
+    dataset_dicts = DatasetCatalog.get("cells_training")
 
-cells_metadata = MetadataCatalog.get("cells_training")
-dataset_dicts = DatasetCatalog.get("cells_training")
+    return cells_metadata, dataset_dicts
 
-print()
-print(dataset_dicts)
-print()
+register_coco_instances()
 
 
 '''
 Checking annotated pictures
 '''
-
-
 def check_annotated_data(output_data_path, cells_metadata):
     for d in dataset_dicts:
         img = cv2.imread(d["file_name"])
