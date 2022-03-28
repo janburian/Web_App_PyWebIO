@@ -19,6 +19,8 @@ import scaffan.image
 import imma.image
 
 import json
+import distutils
+from distutils import dir_util
 
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -47,7 +49,7 @@ def create_directory(directory_name):
     current_directory = os.getcwd()
     files_directory = os.path.join(current_directory, directory_name)
     if not os.path.exists(files_directory):
-        os.makedirs(files_directory)
+        os.makedirs(files_directory, exist_ok=True)
     return files_directory
 
 def save_czi_files(czi_files):
@@ -137,7 +139,7 @@ def create_COCO_json(czi_files_names, user_info):
 def copy_images():
     source_dir = os.path.join(os.getcwd(), "images")
     destination_dir = os.path.join(os.getcwd(), "COCO_dataset", "images")
-    shutil.copytree(source_dir, destination_dir)
+    distutils.dir_util.copy_tree(source_dir, destination_dir)
 
 
 def create_COCO_dataset(czi_files_names, user_info):
@@ -167,6 +169,16 @@ def create_txt_categories_file(list_categories):
             f.write(category)
             f.write("\n")
     f.close()
+
+def define_detectron2_parameters():
+    parameters = input_group("Detectron2 parameters: ", [
+        input('SOLVER.IMS_PER_BATCH', name='ims_per_batch', placeholder="2", type=NUMBER),
+        input('SOLVER.BASE_LR', name='base_lr', placeholder="0.000002", type=NUMBER),
+        input('SOLVER.MAX_ITER', name='max_iter', placeholder="120000", type=NUMBER),
+        input('MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE', placeholder="128", name='batch_size', type=NUMBER),
+    ])
+
+    return parameters
 
 
 if __name__=="__main__":
@@ -201,6 +213,8 @@ if __name__=="__main__":
         create_txt_categories_file(categories)
 
         create_COCO_dataset(czi_files_names, user_info)
+
+        parameters = define_detectron2_parameters()
 
     print()
 
