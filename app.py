@@ -28,10 +28,10 @@ def check_email(email):
 
 def get_user_info():
     info = input_group("User info", [
-      input('Input your name', name='name', required=True),
-      input('Input your email', name='email', type=TEXT, required=True, validate=check_email)
+      input('Enter your username', name='username', required=True),
+      input('Enter your email', name='email', type=TEXT, required=True, validate=check_email)
     ])
-    put_text(info['name'], info['email'])
+    put_text(info['username'], info['email'])
 
     return info
 
@@ -86,7 +86,7 @@ def czi_to_jpg(czi_files, czi_file_names):
         index += 1
 
 
-def create_COCO_json(czi_files_names):
+def create_COCO_json(czi_files_names, user_info):
     # Directory of the image dataset
     dataset_directory = Path(os.path.join(os.getcwd(), "images"))
 
@@ -100,7 +100,7 @@ def create_COCO_json(czi_files_names):
     """
     version = "1.0"
     description = "COCO dataset for scaffan"
-    contributor = "Jan Burian" # TODO: chnage contributor (user info)
+    contributor = user_info['username'] # TODO: chnage contributor (user info)
 
     info_dictionary = COCO_json.get_info_dictionary(version, description, contributor)
     data.update({"info": info_dictionary})
@@ -137,8 +137,8 @@ def copy_images():
     shutil.copytree(source_dir, destination_dir)
 
 
-def create_COCO_dataset(czi_files_names):
-    json_COCO = create_COCO_json(czi_files_names)
+def create_COCO_dataset(czi_files_names, user_info):
+    json_COCO = create_COCO_json(czi_files_names,  user_info)
 
     COCO_directory = create_directory("COCO_dataset")
 
@@ -197,7 +197,7 @@ if __name__=="__main__":
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
 
-        create_COCO_dataset(czi_files_names)
+        create_COCO_dataset(czi_files_names, user_info)
 
     print()
 
