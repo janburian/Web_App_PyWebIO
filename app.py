@@ -2,7 +2,6 @@ import os
 import shutil
 import sys
 
-#import pywebio.session
 import skimage.io
 
 from pywebio.input import *
@@ -58,7 +57,6 @@ def save_czi_files(czi_files):
     for file in czi_files:
         open(os.path.join(czi_files_directory, file['filename']), 'wb').write(file['content'])
 
-
 def get_czi_file_names(images):
     czi_file_names = []
 
@@ -86,7 +84,6 @@ def czi_to_jpg(czi_files, czi_file_names):
         img = view.get_raster_image()
         skimage.io.imsave(os.path.join(images_directory, str(index).zfill(4) + ".jpg"), img)
         index += 1
-
 
 def create_COCO_json(czi_files_names, user_info):
     # Directory of the image dataset

@@ -1,6 +1,3 @@
-# Detectron2 - cells.ipynb
-# Original file is located at https://colab.research.google.com/drive/1rCLduoeFC_UKN5MEKF77nvPVkbxOzt1x
-
 # **Usage of Detectron2**
 import detectron2
 from detectron2.utils.logger import setup_logger
