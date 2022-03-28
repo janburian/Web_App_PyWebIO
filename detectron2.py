@@ -66,19 +66,17 @@ Checking annotated pictures
 '''
 
 
-def check_annotated_data():
-    global d, img_name_final
+def check_annotated_data(output_data_path, cells_metadata):
     for d in dataset_dicts:
         img = cv2.imread(d["file_name"])
         visualizer = Visualizer(img[:, :, ::-1], metadata=cells_metadata, scale=1)
         vis = visualizer.draw_dataset_dict(d)
-        (output_data_dir / "vis_train").mkdir(parents=True, exist_ok=True)
-        print(Path(output_data_dir / "vis_train").exists())
-        print(Path((output_data_dir / "vis_train")))
+        (output_data_path / "vis_train").mkdir(parents=True, exist_ok=True)
+        #print(Path(output_data_path / "vis_train").exists())
+        #print(Path((output_data_path / "vis_train")))
         img_name_final = os.path.basename(d["file_name"])
-        print(str(output_data_dir) + "/" + "vis_train" + "/" + img_name_final)
-        if not cv2.imwrite(str(output_data_dir) + "/" + "vis_train" + "/" + img_name_final,
-                           vis.get_image()[:, :, ::-1]):
+        #print(str(output_data_path) + "/" + "vis_train" + "/" + img_name_final)
+        if not cv2.imwrite(os.path.join(output_data_dir, "vis_train", img_name_final), vis.get_image()[:, :, ::-1]):
             raise Exception("Could not write image: " + img_name_final)
 
 
@@ -86,7 +84,6 @@ check_annotated_data()
 
 
 def train():
-    global predictor
     from detectron2.engine import DefaultTrainer
     from detectron2.config import get_cfg
     # Parameters
@@ -114,9 +111,7 @@ def train():
     cfg.DATASETS.TEST = ("cells_training",)
     predictor = DefaultPredictor(cfg)
 
-
 train()
-
 
 def predict():
     global d, img_name_final
@@ -130,7 +125,7 @@ def predict():
     for d in range(number_pictures_predictions):
         index_str = str(index)
         # print("TEST: " + str(input_data_dir_predict) + "/" + index_str.zfill(4) + ".jpg")
-        im = cv2.imread(str(input_data_dir_predict) + "/" + index_str.zfill(4) + ".jpg")
+        im = cv2.imread(os.path.join(input_data_dir_predict), index_str.zfill(4) + ".jpg")
         outputs = predictor(im)
         v = Visualizer(im[:, :, ::-1],
                        metadata=cells_metadata,
@@ -138,11 +133,10 @@ def predict():
                        instance_mode=ColorMode.IMAGE_BW  # remove the colors of unsegmented pixels
                        )
         v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-        (output_data_dir / "vis_predictions").mkdir(parents=True, exist_ok=True)
+        (os.path.join(output_data_dir, "vis_predictions")).mkdir(parents=True, exist_ok=True)
         img_name_final = "pic_pred_" + index_str.zfill(4) + ".jpg"
         index += 1
-        if not cv2.imwrite(str(output_data_dir) + "/" + "vis_predictions" + "/" + img_name_final,
-                           v.get_image()[:, :, ::-1]):
+        if not cv2.imwrite(os.path.join(output_data_dir, "vis_predictions", img_name_final), v.get_image()[:, :, ::-1]):
             raise Exception("Could not write image: " + img_name_final)
 
 
