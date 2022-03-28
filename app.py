@@ -126,6 +126,9 @@ def create_COCO_json(czi_files_names, user_info):
     list_annotation_dictionaries = COCO_json.get_annotations_properties(
         czi_files_directory, czi_files_names, pixelsize_mm
     )
+    if(len(list_annotation_dictionaries) == 0):
+        popup('Warning', 'No annotations in czi files.')
+
     data.update({"annotations": list_annotation_dictionaries})
 
     return data
