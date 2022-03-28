@@ -84,6 +84,7 @@ check_annotated_data()
 
 
 def train():
+    global predictor
     from detectron2.engine import DefaultTrainer
     from detectron2.config import get_cfg
     # Parameters
