@@ -131,7 +131,7 @@ def get_annotations_properties(czi_files_directory, annotation_names, pixelsize_
 
     index = 0
     annotation_id = 1
-    category_id = 1  # only one category - cells # TODO change?
+    category_id = 1  # only one category - cells # TODO more categories?
     image_id = 0
 
     list_annotation_dictionaries = []

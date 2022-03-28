@@ -50,7 +50,7 @@ def create_directory(directory_name):
         os.makedirs(files_directory)
     return files_directory
 
-def save_czi_files(czi_files): # TODO: saving data to folder
+def save_czi_files(czi_files):
     czi_files_directory = create_directory("czi_files")
 
     for file in czi_files:
@@ -100,7 +100,7 @@ def create_COCO_json(czi_files_names, user_info):
     """
     version = "1.0"
     description = "COCO dataset for scaffan"
-    contributor = user_info['username'] # TODO: chnage contributor (user info)
+    contributor = user_info['username']
 
     info_dictionary = COCO_json.get_info_dictionary(version, description, contributor)
     data.update({"info": info_dictionary})
