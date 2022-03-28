@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 
-import pywebio.session
+#import pywebio.session
 import skimage.io
 
 from pywebio.input import *
@@ -37,7 +37,7 @@ def get_user_info():
 
 def upload_data_page():
     data = input_group("Main page", [
-        file_upload("Upload .czi files:", accept=".czi", multiple=True, required=True, name="imgs"),
+        file_upload("Upload .czi files:", accept=".czi", multiple=True, required=True, name="czi"),
         radio("Choose one option", options=['Predict', 'Train'], required=True, name="operation"),
     ])
 
@@ -50,11 +50,11 @@ def create_directory(directory_name):
         os.makedirs(files_directory)
     return files_directory
 
-def save_czi_files(images): # TODO: saving data to folder
+def save_czi_files(czi_files): # TODO: saving data to folder
     czi_files_directory = create_directory("czi_files")
 
-    for img in images:
-        open(os.path.join(czi_files_directory, img['filename']), 'wb').write(img['content'])
+    for file in czi_files:
+        open(os.path.join(czi_files_directory, file['filename']), 'wb').write(file['content'])
 
 
 def get_czi_file_names(images):
@@ -86,7 +86,7 @@ def czi_to_jpg(czi_files, czi_file_names):
         index += 1
 
 
-def create_COCO_json():
+def create_COCO_json(czi_files_names):
     # Directory of the image dataset
     dataset_directory = Path(os.path.join(os.getcwd(), "images"))
 
@@ -122,10 +122,9 @@ def create_COCO_json():
     """
     Annotations
     """
-    annotation_name = "annotation" # TODO: change of annotation names
     pixelsize_mm = [0.0003, 0.0003]
     list_annotation_dictionaries = COCO_json.get_annotations_properties(
-        czi_files_directory, annotation_name, pixelsize_mm
+        czi_files_directory, czi_files_names, pixelsize_mm
     )
     data.update({"annotations": list_annotation_dictionaries})
 
@@ -138,8 +137,8 @@ def copy_images():
     shutil.copytree(source_dir, destination_dir)
 
 
-def create_COCO_dataset():
-    json_COCO = create_COCO_json()
+def create_COCO_dataset(czi_files_names):
+    json_COCO = create_COCO_json(czi_files_names)
 
     COCO_directory = create_directory("COCO_dataset")
 
@@ -171,13 +170,21 @@ if __name__=="__main__":
     user_info = get_user_info()
     data = upload_data_page()
 
-    czi_files = data['imgs']
+    czi_files = data['czi']
     operation = data['operation']
 
     save_czi_files(czi_files)
     czi_files_names = get_czi_file_names(czi_files)
 
     czi_to_jpg(czi_files, czi_files_names)
+
+    ''' Test
+    anim = scaffan.image.AnnotatedImage(path=os.path.join(os.getcwd(), "czi_files", "test.czi"))
+    view = anim.get_full_view(
+        pixelsize_mm=[0.0003, 0.0003]
+    )  # wanted pixelsize in mm in view
+    annotations = view.annotations
+    '''
 
     if (operation == 'Predict'):
         model_option = select("Choose one of pretrained models or upload your own", ['model_1', 'model_2', 'model_3', 'upload_own'], required=True),
@@ -190,10 +197,7 @@ if __name__=="__main__":
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
 
-        create_COCO_dataset()
-        pass
-
-
+        create_COCO_dataset(czi_files_names)
 
     print()
 
