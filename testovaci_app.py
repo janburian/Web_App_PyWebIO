@@ -218,10 +218,9 @@ if __name__ == "__main__":
 
     if (operation == 'Predict'):
         available_models = get_available_models()
-        available_models.append('upload_own')
 
         model_pred = input_group("Choosing model for prediction: ", [
-            select("Choose one of pretrained models or upload your own", available_models, name='chosen_model', required=True),
+            select("Choose one of pretrained models or upload your own", available_models, placeholder=" ", name='chosen_model'),
             file_upload("Upload your own model:", accept=".pth", name='own_model'),
         ])
 
