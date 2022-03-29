@@ -42,6 +42,7 @@ def upload_data_page():
     data = input_group("Main page", [
         file_upload("Upload .czi files:", accept=".czi", multiple=True, required=True, name="czi"),
         radio("Choose one option", options=['Predict', 'Train'], required=True, name="operation"),
+        textarea('Description', rows=3, name="description"),
     ])
 
     return data
@@ -147,11 +148,10 @@ def copy_images():
 
 
 def create_COCO_dataset(czi_files_names, user_info):
+    name_json = "trainval"
     json_COCO = create_COCO_json(czi_files_names, user_info)
 
     COCO_directory = create_directory("COCO_dataset")
-
-    name_json = "trainval"
 
     # Creating .json file
     with open(os.path.join(COCO_directory, name_json), "w", encoding="utf-8") as f:
