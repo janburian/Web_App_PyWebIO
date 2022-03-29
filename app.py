@@ -1,3 +1,4 @@
+import glob
 import os
 import sys
 
@@ -186,6 +187,15 @@ def define_detectron2_parameters():
     return parameters
 
 
+def get_available_models():
+    models = glob.glob(os.path.join(os.getcwd(), "models", "*.pth"))
+    models_list = []
+    for model in models:
+        models_list.append(os.path.basename(model))
+
+    return models_list
+
+
 if __name__ == "__main__":
     user_info = get_user_info()
     data = upload_data_page()
@@ -207,8 +217,10 @@ if __name__ == "__main__":
     '''
 
     if (operation == 'Predict'):
+        available_models = get_available_models()
+        available_models.append('upload_own')
         model_option = select("Choose one of pretrained models or upload your own",
-                              ['model_1', 'model_2', 'model_3', 'upload_own'], required=True),
+                              available_models, required=True),
 
         if (model_option[0] == 'upload_own'):
             own_model = file_upload("Upload your own model:", accept=".pth")
