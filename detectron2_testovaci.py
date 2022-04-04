@@ -13,7 +13,6 @@ import glob
 import os
 from pathlib import Path
 
-
 setup_logger()
 
 '''
@@ -103,6 +102,7 @@ def train():
     print("Obsah adresare output_data_dir: " + str(list(Path(output_data_dir).glob("**/*"))))
     print("Obsah adresare inputdir: " + str(list(Path(input_data_dir_train).glob("**/*"))))
     trainer.train()
+
     cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set the testing threshold for this model
     cfg.DATASETS.TEST = ("cells_training",)
