@@ -196,6 +196,19 @@ def get_available_models():
     return models_list
 
 
+def choose_model():
+    global model_option
+    model_option = select("Choose one of pretrained models or upload your own",
+                          available_models, required=True)
+    return model_option
+
+
+def save_own_model(model_option):
+    if (model_option == 'upload_own'):
+        own_model = file_upload("Upload your own model:", accept=".pth")
+        open(own_model['filename'], 'wb').write(own_model['content'])
+
+
 if __name__ == "__main__":
     user_info = get_user_info()
     data = upload_data_page()
@@ -219,14 +232,17 @@ if __name__ == "__main__":
     if (operation == 'Predict'):
         available_models = get_available_models()
         available_models.append('upload_own')
-        model_option = select("Choose one of pretrained models or upload your own",
-                              available_models, required=True),
+        model_option = choose_model()
 
-        if (model_option[0] == 'upload_own'):
-            own_model = file_upload("Upload your own model:", accept=".pth")
-            open(own_model['filename'], 'wb').write(own_model['content'])
+        save_own_model(model_option)
 
     elif (operation == 'Train'):
+        available_models = get_available_models()
+        available_models.append('upload_own')
+        model_option = choose_model()
+
+        save_own_model(model_option)
+
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
 
