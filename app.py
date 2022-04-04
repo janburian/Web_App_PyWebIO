@@ -1,5 +1,6 @@
 import glob
 import os
+import random
 import sys
 
 import skimage.io
@@ -11,6 +12,7 @@ import re
 from pathlib import Path
 
 import COCO_json
+import detectron2_testovaci
 
 path_to_script = Path("~/projects/scaffan/").expanduser()
 sys.path.insert(0, str(path_to_script))
@@ -149,7 +151,7 @@ def copy_images():
 
 
 def create_COCO_dataset(czi_files_names, user_info):
-    name_json = "trainval"
+    name_json = "trainval.json"
     json_COCO = create_COCO_json(czi_files_names, user_info)
 
     COCO_directory = create_directory("COCO_dataset")
@@ -236,6 +238,10 @@ if __name__ == "__main__":
 
         save_own_model(model_option)
 
+        detectron2_testovaci.predict(os.path.join(os.getcwd(), "images"), os.path.join(os.getcwd(), "processed"))
+
+
+
     elif (operation == 'Train'):
         available_models = get_available_models()
         available_models.append('upload_own')
@@ -250,4 +256,15 @@ if __name__ == "__main__":
 
         parameters = define_detectron2_parameters()
 
-    print()
+        processed = create_directory("processed")
+        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(os.getcwd(), "COCO_dataset"))
+        detectron2_testovaci.check_annotated_data(os.path.join(os.getcwd(), "processed"), cells_metadata, dataset_dicts)
+
+        put_text("Annotated data visualization").style('font-size: 20px')
+        put_image(open(os.path.join(os.getcwd(), "processed", "vis_train", "0000.jpg"), 'rb').read())
+        put_image(open(os.path.join(os.getcwd(), "processed", "vis_train", "0001.jpg"), 'rb').read())
+        #put_image(open(os.path.join(os.getcwd(), "processed", "vis_train", "0002.jpg"), 'rb').read())
+
+        detectron2_testovaci.train()
+        print()
+
