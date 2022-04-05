@@ -67,15 +67,20 @@ def train():
     trainer.train()
 
 
+
 def predict(input_data_dir, output_data_dir):
     cfg = get_cfg()
-    cfg.MODEL.WEIGHTS = os.path.join(os.getcwd(), "models", "model_final.pth")
+    cfg.merge_from_file(
+        r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation"
+        "\mask_rcnn_R_50_FPN_3x.yaml")
+
+    #cfg.MODEL.WEIGHTS = os.path.join(os.getcwd(), "models", "model_final.pth")
+    cfg.MODEL.WEIGHTS = str(Path(__file__).parent / "models/model_final.pth")
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set the testing threshold for this model
     cfg.DATASETS.TEST = ("cells_training",)
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # 1 class (cells nuclei)
     cfg.MODEL.DEVICE = 'cpu'
     predictor = DefaultPredictor(cfg)
-
-    cells_metadata = MetadataCatalog.get("cells_training")
 
     from detectron2.utils.visualizer import ColorMode
 
@@ -91,8 +96,8 @@ def predict(input_data_dir, output_data_dir):
         im = cv2.imread(os.path.join(input_data_dir, index_str.zfill(4) + ".jpg"))
         outputs = predictor(im)
         v = Visualizer(im[:, :, ::-1],
-                       metadata=cells_metadata,
-                       scale=3,
+                       #metadata=cells_metadata,
+                       scale=1,
                        instance_mode=ColorMode.IMAGE_BW  # remove the colors of unsegmented pixels
                        )
         v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
