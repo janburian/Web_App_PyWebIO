@@ -16,8 +16,7 @@ from pathlib import Path
 setup_logger()
 
 def create_directory(directory_name):
-    current_directory = os.getcwd()
-    files_directory = os.path.join(current_directory, directory_name)
+    files_directory = os.path.join(Path(__file__).parent, directory_name)
     if not os.path.exists(files_directory):
         os.makedirs(files_directory)
     return files_directory

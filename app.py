@@ -237,8 +237,7 @@ if __name__ == "__main__":
 
         save_own_model(model_option)
 
-        #detectron2_testovaci.predict(os.path.join(os.getcwd(), "images"), os.path.join(os.getcwd(), "processed"))
-        detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent / "images"))
+        detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent))
 
 
 
