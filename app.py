@@ -52,8 +52,7 @@ def upload_data_page():
 
 
 def create_directory(directory_name):
-    current_directory = os.getcwd()
-    files_directory = os.path.join(current_directory, directory_name)
+    files_directory = os.path.join(Path(__file__).parent, directory_name)
     if not os.path.exists(files_directory):
         os.makedirs(files_directory, exist_ok=True)
     return files_directory
@@ -80,7 +79,7 @@ def czi_to_jpg(czi_files, czi_file_names):
 
     index = 0
     while index < len(czi_files):
-        fn_path = Path(os.path.join(os.getcwd(), "czi_files", czi_file_names[index]))
+        fn_path = Path(os.path.join(Path(__file__).parent, "czi_files", czi_file_names[index]))
         fn_str = str(fn_path)
         if not fn_path.exists():
             break
@@ -98,10 +97,10 @@ def czi_to_jpg(czi_files, czi_file_names):
 
 def create_COCO_json(czi_files_names, user_info):
     # Directory of the image dataset
-    dataset_directory = Path(os.path.join(os.getcwd(), "images"))
+    dataset_directory = Path(os.path.join(Path(__file__).parent, "images"))
 
     # Directory of the .czi files
-    czi_files_directory = Path(os.path.join(os.getcwd(), "czi_files"))  # path to .czi files directory
+    czi_files_directory = Path(os.path.join(Path(__file__).parent, "czi_files"))  # path to .czi files directory
 
     data = {}
 
@@ -145,8 +144,8 @@ def create_COCO_json(czi_files_names, user_info):
 
 
 def copy_images():
-    source_dir = os.path.join(os.getcwd(), "images")
-    destination_dir = os.path.join(os.getcwd(), "COCO_dataset", "images")
+    source_dir = os.path.join(Path(__file__).parent, "images")
+    destination_dir = os.path.join(Path(__file__).parent, "COCO_dataset", "images")
     distutils.dir_util.copy_tree(source_dir, destination_dir)
 
 
@@ -170,7 +169,7 @@ def get_categories():
 
 
 def create_txt_categories_file(list_categories):
-    txt_file_path = os.path.join(os.getcwd(), "images", "categories.txt")
+    txt_file_path = os.path.join(Path(__file__).parent, "images", "categories.txt")
     with open(txt_file_path, 'w') as f:
         for category in list_categories:
             f.write(category)
@@ -190,7 +189,7 @@ def define_detectron2_parameters():
 
 
 def get_available_models():
-    models = glob.glob(os.path.join(os.getcwd(), "models", "*.pth"))
+    models = glob.glob(os.path.join(Path(__file__).parent, "models", "*.pth"))
     models_list = []
     for model in models:
         models_list.append(os.path.basename(model))
@@ -224,7 +223,7 @@ if __name__ == "__main__":
     czi_to_jpg(czi_files, czi_files_names)
 
     ''' Test
-    anim = scaffan.image.AnnotatedImage(path=os.path.join(os.getcwd(), "czi_files", "test.czi"))
+    anim = scaffan.image.AnnotatedImage(path=os.path.join(Path(__file__).parent, "czi_files", "test.czi"))
     view = anim.get_full_view(
         pixelsize_mm=[0.0003, 0.0003]
     )  # wanted pixelsize in mm in view
@@ -238,7 +237,8 @@ if __name__ == "__main__":
 
         save_own_model(model_option)
 
-        detectron2_testovaci.predict(os.path.join(os.getcwd(), "images"), os.path.join(os.getcwd(), "processed"))
+        #detectron2_testovaci.predict(os.path.join(os.getcwd(), "images"), os.path.join(os.getcwd(), "processed"))
+        detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent / "images"))
 
 
 
@@ -257,13 +257,13 @@ if __name__ == "__main__":
         parameters = define_detectron2_parameters()
 
         processed = create_directory("processed")
-        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(os.getcwd(), "COCO_dataset"))
-        detectron2_testovaci.check_annotated_data(os.path.join(os.getcwd(), "processed"), cells_metadata, dataset_dicts)
+        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_dataset"))
+        detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
         put_text("Annotated data visualization").style('font-size: 20px')
-        put_image(open(os.path.join(os.getcwd(), "processed", "vis_train", "0000.jpg"), 'rb').read())
-        put_image(open(os.path.join(os.getcwd(), "processed", "vis_train", "0001.jpg"), 'rb').read())
-        #put_image(open(os.path.join(os.getcwd(), "processed", "vis_train", "0002.jpg"), 'rb').read())
+        put_image(open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0000.jpg"), 'rb').read())
+        put_image(open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0001.jpg"), 'rb').read())
+        #put_image(open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0002.jpg"), 'rb').read())
 
         detectron2_testovaci.train()
         print()
