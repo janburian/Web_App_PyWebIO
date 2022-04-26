@@ -39,13 +39,17 @@ def get_user_info():
 </head>
 <body>
 
-<h1>Popis aplikace</h1>
-<p>Jedná se o aplikaci počítačového vidění, jejímž hlavním cílem je detekce buněčných jader v mikroskopických histologických obrazech. K tomuto účelu aplikace využívá neuronové sítě, přesněji framework Detectron2. Prostřednictvím této aplikace si uživatel rovněž může natrénovat i svůj vlastní model.</p>
+<h1>Description</h1>
+<p>Jedná se o aplikaci počítačového vidění, jejímž hlavním cílem je detekce buněčných jader v mikroskopických histologických obrazech. 
+K tomuto účelu aplikace využívá neuronové sítě, přesněji framework Detectron2. 
+Prostřednictvím této aplikace si uživatel rovněž může natrénovat i svůj vlastní model.</p>
 
-<h1>Postup</h1>
-
+<h1>How it works</h1>
 </body>
 </html>""")
+
+    img = open("schema2.png", 'rb').read()
+    put_image(img, width='903px', height='160px')
 
     info = input_group("User info", [
         input('Enter your username', name='username', required=True),
