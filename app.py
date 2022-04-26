@@ -32,6 +32,21 @@ def check_email(email):
 
 
 def get_user_info():
+    put_html("""<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+
+<h1>Popis aplikace</h1>
+<p>Jedná se o aplikaci počítačového vidění, jejímž hlavním cílem je detekce buněčných jader v mikroskopických histologických obrazech. K tomuto účelu aplikace využívá neuronové sítě, přesněji framework Detectron2. Prostřednictvím této aplikace si uživatel rovněž může natrénovat i svůj vlastní model.</p>
+
+<h1>Postup</h1>
+
+</body>
+</html>""")
+
     info = input_group("User info", [
         input('Enter your username', name='username', required=True),
         input('Enter your email', name='email', type=TEXT, required=True, validate=check_email)
