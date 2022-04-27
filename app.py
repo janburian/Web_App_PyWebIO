@@ -2,12 +2,15 @@ import glob
 import os
 import random
 import sys
+import zipfile
 
 import skimage.io
 
 from pywebio.input import *
 from pywebio.output import *
 import re
+import pywebio
+from PIL import Image
 
 from pathlib import Path
 
@@ -33,22 +36,23 @@ def check_email(email):
 
 def get_user_info():
     put_html("""<!DOCTYPE html>
-<html>
-<head>
-<title>Page Title</title>
-</head>
-<body>
+                    <html>
+                    <head>
+                    <title>Page Title</title>
+                    </head>
+                    <body>
+                    
+                    <h1>Description</h1>
+                    <p>The main goal of this computer vision application is to detect cell nuclei in microscopic histological images.
+                    It is based on Detectron2 framework, so for the detection it uses deep neural network. 
+                    User also can train his own model through this application, too. </p>
+                    <p>The application was written in Python and it is powered by PyWebIO module.</p>
+                    
+                    <h1>How it works</h1>
+                    </body>
+                    </html>""")
 
-<h1>Description</h1>
-<p>Jedná se o aplikaci počítačového vidění, jejímž hlavním cílem je detekce buněčných jader v mikroskopických histologických obrazech. 
-K tomuto účelu aplikace využívá neuronové sítě, přesněji framework Detectron2. 
-Prostřednictvím této aplikace si uživatel rovněž může natrénovat i svůj vlastní model.</p>
-
-<h1>How it works</h1>
-</body>
-</html>""")
-
-    img = open("schema2.png", 'rb').read()
+    img = Image.open("schema2.png", 'r')
     put_image(img, width='903px', height='160px')
 
     info = input_group("User info", [
@@ -155,7 +159,7 @@ def create_COCO_json(czi_files_names, user_info):
         czi_files_directory, czi_files_names, pixelsize_mm
     )
     if (len(list_annotation_dictionaries) == 0):
-        popup('Warning', 'No annotations in czi files.')
+        popup('Warning', 'No annotations in .czi files.')
 
     data.update({"annotations": list_annotation_dictionaries})
 
@@ -228,6 +232,24 @@ def save_own_model(model_option):
         own_model = file_upload("Upload your own model:", accept=".pth")
         open(own_model['filename'], 'wb').write(own_model['content'])
 
+def zip_directory(folder_path, zip_path):
+    with zipfile.ZipFile(zip_path, mode='w') as zipf:
+        len_dir_path = len(folder_path)
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, file_path[len_dir_path:])
+    zipf.close()
+
+def download_data():
+    processed_dir_path = os.path.join(Path(__file__).parent, "processed")
+    zip_directory(processed_dir_path, "data.zip")
+    f = open("data.zip", 'rb')
+    content = f.read()
+    f.close()
+    put_file('data.zip', content, b'Download results')
+
+
 
 if __name__ == "__main__":
     user_info = get_user_info()
@@ -256,9 +278,13 @@ if __name__ == "__main__":
 
         save_own_model(model_option)
 
-        detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent))
+        with put_loading("border", "primary"):
+            detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent))
 
+        download_data()
+        test = choose_model()
 
+        #pywebio.session.hold()
 
     elif (operation == 'Train'):
         available_models = get_available_models()
@@ -276,13 +302,19 @@ if __name__ == "__main__":
 
         processed = create_directory("processed")
         cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_dataset"))
-        detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
+        with put_loading("border", "primary"):
+            detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
         put_text("Annotated data visualization").style('font-size: 20px')
-        put_image(open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0000.jpg"), 'rb').read())
-        put_image(open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0001.jpg"), 'rb').read())
-        #put_image(open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0002.jpg"), 'rb').read())
 
-        detectron2_testovaci.train()
+        put_table([
+            [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0000.jpg"), 'r')),
+             put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0001.jpg"), 'r'))],
+        ])
+
+        with put_loading("border", "primary"):
+            detectron2_testovaci.train()
+
+        #download_data()
         print()
 
