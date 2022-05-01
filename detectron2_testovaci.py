@@ -12,6 +12,9 @@ import cv2
 import glob
 import os
 from pathlib import Path
+import json
+
+import COCO_json
 
 setup_logger()
 
@@ -93,12 +96,15 @@ def predict(input_data_dir, output_data_dir, model_name: str):
 
     print("Number of pictures for prediction: " + str(number_pictures_predictions))
     index = 0
+    outputs_list = []
+    img_names_list = []
     for d in range(number_pictures_predictions):
         index_str = str(index)
         # print("TEST: " + str(input_data_dir_predict) + "/" + index_str.zfill(4) + ".jpg")
         print(os.path.join(input_data_dir, index_str.zfill(4), ".jpg"))
         im = cv2.imread(os.path.join(input_data_dir, index_str.zfill(4) + ".jpg"))
         outputs = predictor(im)
+        outputs_list.append(outputs)
         v = Visualizer(im[:, :, ::-1],
                        #metadata=cells_metadata,
                        scale=1,
@@ -107,7 +113,47 @@ def predict(input_data_dir, output_data_dir, model_name: str):
         v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
         Path(os.path.join(output_data_dir, "processed", "vis_predictions")).mkdir(parents=True, exist_ok=True)
         img_name_final = "pic_pred_" + index_str.zfill(4) + ".jpg"
+        img_names_list.append(img_name_final)
         index += 1
         if not cv2.imwrite(os.path.join(output_data_dir, "processed", "vis_predictions", img_name_final), v.get_image()[:, :, ::-1]):
             raise Exception("Could not write image: " + img_name_final)
+
+    create_outputs_json(img_names_list, output_data_dir, outputs_list)
+
+
+def create_outputs_json(img_names_list, output_data_dir, outputs_list):
+    data_list = []
+    images_list = []
+    outputs_dict = {}
+    for i in range(len(outputs_list)):
+        instances = outputs_list[i]["instances"]
+        img_size = instances.image_size
+        fields = instances.get_fields()
+        pred_boxes_numpy = fields['pred_boxes'].tensor.numpy()
+        scores_numpy = fields['scores'].numpy()
+        pred_classes_numpy = fields['pred_classes'].numpy()
+
+        image = {"name": img_names_list[i],
+                 "width": img_size[1],
+                 "height": img_size[0],
+                 "number_instances": len(pred_classes_numpy)}
+
+        data = {"pred_boxes": pred_boxes_numpy.tolist(),
+                "scores": scores_numpy.tolist(),
+                "pred_classes": pred_classes_numpy.tolist()}
+
+        data_list.append(data)
+        images_list.append(image)
+
+    version = "1.0"
+    description = "Prediction outputs results"
+    info_dictionary = COCO_json.get_info_dictionary(version, description, "")
+    outputs_dict.update({"info": info_dictionary})
+    outputs_dict.update({"images": images_list})
+    outputs_dict.update({"outputs": data_list})
+
+    # Creating .json file
+    with open(os.path.join(output_data_dir, "processed", "outputs.json"), "w", encoding="utf-8") as f:
+        json.dump(outputs_dict, f, ensure_ascii=False, indent=4)
+        f.close()
 
