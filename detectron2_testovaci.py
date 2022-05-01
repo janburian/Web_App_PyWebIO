@@ -42,20 +42,23 @@ def check_annotated_data(output_data_path, cells_metadata, dataset_dicts):
             raise Exception("Could not write image: " + img_name_final)
 
 
-def train():
+def train(model_name: str):
     from detectron2.engine import DefaultTrainer
 
     # Parameters
     cfg = get_cfg()
     cfg.MODEL.DEVICE = 'cpu'
-    cfg.merge_from_file(r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation"
-                        "\mask_rcnn_R_50_FPN_3x.yaml")
+    config_name = os.path.splitext(model_name)[0]
+    cfg.merge_from_file(os.path.join(
+        r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation",
+        config_name + ".yaml"))
+    # TODO: choosing yaml file?
     cfg.DATASETS.TRAIN = ("cells_training",)
     #cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
     #cfg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"  # initialize from model zoo
-    cfg.MODEL.WEIGHTS = str(Path(__file__).parent / "models/model_final.pth") # TODO: choosing model
+    cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00005
     cfg.SOLVER.MAX_ITER = 50
@@ -70,14 +73,13 @@ def train():
 
 
 
-def predict(input_data_dir, output_data_dir):
+def predict(input_data_dir, output_data_dir, model_name: str):
     cfg = get_cfg()
-    cfg.merge_from_file(
-        r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation"
-        "\mask_rcnn_R_50_FPN_3x.yaml")
+    config_name = os.path.splitext(model_name)[0]
+    cfg.merge_from_file(os.path.join( r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation", config_name + ".yaml"))
+        # TODO: choosing yaml file?
 
-    #cfg.MODEL.WEIGHTS = os.path.join(os.getcwd(), "models", "model_final.pth")
-    cfg.MODEL.WEIGHTS = str(Path(__file__).parent / "models/model_final.pth") # TODO: choosing model
+    cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set the testing threshold for this model
     cfg.DATASETS.TEST = ("cells_training",)
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # 1 class (cells nuclei)

@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import zipfile
+import shutil
 
 import skimage.io
 
@@ -232,6 +233,8 @@ def save_own_model(model_option):
         own_model = file_upload("Upload your own model:", accept=".pth")
         open(own_model['filename'], 'wb').write(own_model['content'])
 
+    return own_model['filename']
+
 def zip_directory(folder_path, zip_path):
     with zipfile.ZipFile(zip_path, mode='w') as zipf:
         len_dir_path = len(folder_path)
@@ -244,14 +247,30 @@ def zip_directory(folder_path, zip_path):
 def download_data():
     processed_dir_path = os.path.join(Path(__file__).parent, "processed")
     zip_directory(processed_dir_path, "data.zip")
-    f = open("data.zip", 'rb')
-    content = f.read()
-    f.close()
-    put_file('data.zip', content, b'Download results')
+    #f = open("data.zip", 'rb')
+    #content = f.read()
+    #f.close()
+    put_file(os.path.join(Path(__file__).parent, "data.zip"))
 
+
+def delete_content_folder(path_folder: str):
+    if os.path.exists(path_folder):
+        for filename in os.listdir(path_folder):
+            file_path = os.path.join(path_folder, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
 if __name__ == "__main__":
+    delete_content_folder(os.path.join(Path(__file__).parent, "czi_files"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "images"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "processed"))
+
     user_info = get_user_info()
     data = upload_data_page()
 
@@ -276,13 +295,22 @@ if __name__ == "__main__":
         available_models.append('upload_own')
         model_option = choose_model()
 
-        save_own_model(model_option)
+        model_name = model_option
+
+        if model_option == "upload_own":
+            model_name = save_own_model(model_option)
 
         with put_loading("border", "primary"):
-            detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent))
+            detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent), model_name)
 
-        download_data()
-        test = choose_model()
+        put_table([
+            [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", "pic_pred_0000.jpg"), 'r')),
+             put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", "pic_pred_0001.jpg"), 'r'))],
+        ])
+
+        # TODO: Visualization of predicted data
+        #download_data()
+        #test = choose_model()
 
         #pywebio.session.hold()
 
@@ -291,7 +319,10 @@ if __name__ == "__main__":
         available_models.append('upload_own')
         model_option = choose_model()
 
-        save_own_model(model_option)
+        model_name = model_option
+
+        if model_option == "upload_own":
+            model_name = save_own_model(model_option)
 
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
@@ -313,7 +344,7 @@ if __name__ == "__main__":
         ])
 
         with put_loading("border", "primary"):
-            detectron2_testovaci.train()
+            detectron2_testovaci.train(model_name)
 
         #download_data()
         print()
