@@ -4,6 +4,7 @@ import sys
 import zipfile
 import shutil
 
+import pywebio.session
 import skimage.io
 
 from pywebio.input import *
@@ -16,7 +17,8 @@ from pathlib import Path
 import COCO_json
 import detectron2_testovaci
 
-path_to_script = Path("~/projects/scaffan/").expanduser()
+path_to_script = Path("~/GitHub/scaffan").expanduser()
+print(os.path.exists(path_to_script))
 sys.path.insert(0, str(path_to_script))
 import scaffan.image
 import imma.image
@@ -25,6 +27,7 @@ import json
 import distutils
 from distutils import dir_util
 
+print(scaffan.__file__)
 
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -242,13 +245,6 @@ def create_zip_directory(folder_path, zip_path):
                 zipf.write(file_path, file_path[len_dir_path:])
     zipf.close()
 
-def download_data():
-    #f = open("data.zip", 'rb')
-    #content = f.read()
-    #f.close()
-    put_file(os.path.join(Path(__file__).parent, "data.zip"))
-
-
 def delete_content_folder(path_folder: str):
     if os.path.exists(path_folder):
         for filename in os.listdir(path_folder):
@@ -330,6 +326,9 @@ if __name__ == "__main__":
         # TODO: Visualization of predicted data
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
         create_zip_directory(processed_dir_path, "results.zip")
+        content = open('results.zip', 'rb').read()
+        put_file('results.zip', content, 'Download results.')
+        pywebio.session.hold()
 
     elif (operation == 'Train'):
         available_models = get_available_models()
@@ -358,7 +357,7 @@ if __name__ == "__main__":
         put_table([
             [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0000.jpg"), 'r')),
              put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0001.jpg"), 'r'))],
-        ])
+        ]) # TODO: zobrazit vsechny obrazky
 
         with put_loading("border", "primary"):
             detectron2_testovaci.train(model_name)
@@ -371,6 +370,14 @@ if __name__ == "__main__":
         create_zip_directory(processed_dir_path, "data.zip")
         create_zip_directory(COCO_path, "COCO.zip")
 
-        #download_data()
-        print()
+        content = open('output.zip', 'rb').read()
+        put_file('output.zip', content, 'Download trained model/s.')
+
+        content = open('data.zip', 'rb').read()
+        put_file('data.zip', content, 'Download image data with annotations.')
+
+        content = open('COCO.zip', 'rb').read()
+        put_file('COCO.zip', content, 'Download custom COCO dataset.')
+
+        pywebio.session.hold()
 

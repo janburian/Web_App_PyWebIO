@@ -57,7 +57,7 @@ def train(model_name: str):
         config_name + ".yaml"))
     # TODO: choosing yaml file?
     cfg.DATASETS.TRAIN = ("cells_training",)
-    #cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset
+    #cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset # TODO:
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
     #cfg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"  # initialize from model zoo
