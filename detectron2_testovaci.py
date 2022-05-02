@@ -64,7 +64,7 @@ def train(model_name: str):
     cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00005
-    cfg.SOLVER.MAX_ITER = 50
+    cfg.SOLVER.MAX_ITER = 5
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128  # faster, and good enough for this toy dataset
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # 1 class (cells nuclei)
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

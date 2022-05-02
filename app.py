@@ -1,6 +1,5 @@
 import glob
 import os
-import random
 import sys
 import zipfile
 import shutil
@@ -10,7 +9,6 @@ import skimage.io
 from pywebio.input import *
 from pywebio.output import *
 import re
-import pywebio
 from PIL import Image
 
 from pathlib import Path
@@ -245,8 +243,6 @@ def create_zip_directory(folder_path, zip_path):
     zipf.close()
 
 def download_data():
-    processed_dir_path = os.path.join(Path(__file__).parent, "processed")
-    create_zip_directory(processed_dir_path, "data.zip")
     #f = open("data.zip", 'rb')
     #content = f.read()
     #f.close()
@@ -265,11 +261,33 @@ def delete_content_folder(path_folder: str):
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
 
+def merge_zip_file(zips:list):
+    """
+    Open the first zip file as append and then read all
+    subsequent zip files and append to the first one
+    """
+    with zipfile.ZipFile(zips[0], 'a') as z1:
+        for fname in zips[1:]:
+            zf = zipfile.ZipFile(fname, 'r')
+            for n in zf.namelist():
+                z1.writestr(n, zf.open(n).read())
+
+def delete_zip_files():
+    dir_name = os.path.join(Path(__file__).parent)
+    test = os.listdir(dir_name)
+
+    for item in test:
+        if item.endswith(".zip"):
+            os.remove(os.path.join(dir_name, item))
 
 if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "czi_files"))
     delete_content_folder(os.path.join(Path(__file__).parent, "images"))
     delete_content_folder(os.path.join(Path(__file__).parent, "processed"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "output"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_dataset"))
+
+    delete_zip_files()
 
     user_info = get_user_info()
     data = upload_data_page()
@@ -310,10 +328,8 @@ if __name__ == "__main__":
         ])
 
         # TODO: Visualization of predicted data
-        #download_data()
-        #test = choose_model()
-
-        #pywebio.session.hold()
+        processed_dir_path = os.path.join(Path(__file__).parent, "processed")
+        create_zip_directory(processed_dir_path, "results.zip")
 
     elif (operation == 'Train'):
         available_models = get_available_models()
@@ -346,6 +362,14 @@ if __name__ == "__main__":
 
         with put_loading("border", "primary"):
             detectron2_testovaci.train(model_name)
+
+        output_path = os.path.join(Path(__file__).parent, "output")
+        processed_dir_path = os.path.join(Path(__file__).parent, "processed")
+        COCO_path = os.path.join(Path(__file__).parent, "COCO_dataset")
+
+        create_zip_directory(output_path, "output.zip")
+        create_zip_directory(processed_dir_path, "data.zip")
+        create_zip_directory(COCO_path, "COCO.zip")
 
         #download_data()
         print()
