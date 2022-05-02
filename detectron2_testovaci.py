@@ -118,10 +118,10 @@ def predict(input_data_dir, output_data_dir, model_name: str):
         if not cv2.imwrite(os.path.join(output_data_dir, "processed", "vis_predictions", img_name_final), v.get_image()[:, :, ::-1]):
             raise Exception("Could not write image: " + img_name_final)
 
-    create_outputs_json(img_names_list, output_data_dir, outputs_list)
+    create_outputs_json(img_names_list, output_data_dir, outputs_list, model_name)
 
 
-def create_outputs_json(img_names_list, output_data_dir, outputs_list):
+def create_outputs_json(img_names_list, output_data_dir, outputs_list, model_name):
     data_list = []
     images_list = []
     outputs_dict = {}
@@ -134,7 +134,7 @@ def create_outputs_json(img_names_list, output_data_dir, outputs_list):
         pred_classes_numpy = fields['pred_classes'].numpy()
 
         image = {"name": img_names_list[i],
-                 "width": img_size[1],
+                 "width": img_size[1], # TODO: zkontrolovat, zda nejsou prohozene width a height u obdelniku
                  "height": img_size[0],
                  "number_instances": len(pred_classes_numpy)}
 
@@ -148,6 +148,7 @@ def create_outputs_json(img_names_list, output_data_dir, outputs_list):
     version = "1.0"
     description = "Prediction outputs results"
     info_dictionary = COCO_json.get_info_dictionary(version, description, "")
+    info_dictionary["model_name"] = model_name
     outputs_dict.update({"info": info_dictionary})
     outputs_dict.update({"images": images_list})
     outputs_dict.update({"outputs": data_list})

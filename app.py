@@ -235,7 +235,7 @@ def save_own_model(model_option):
 
     return own_model['filename']
 
-def zip_directory(folder_path, zip_path):
+def create_zip_directory(folder_path, zip_path):
     with zipfile.ZipFile(zip_path, mode='w') as zipf:
         len_dir_path = len(folder_path)
         for root, _, files in os.walk(folder_path):
@@ -246,7 +246,7 @@ def zip_directory(folder_path, zip_path):
 
 def download_data():
     processed_dir_path = os.path.join(Path(__file__).parent, "processed")
-    zip_directory(processed_dir_path, "data.zip")
+    create_zip_directory(processed_dir_path, "data.zip")
     #f = open("data.zip", 'rb')
     #content = f.read()
     #f.close()
@@ -303,6 +303,7 @@ if __name__ == "__main__":
         with put_loading("border", "primary"):
             detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent), model_name)
 
+        put_text("Predicted data visualization").style('font-size: 20px')
         put_table([
             [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", "pic_pred_0000.jpg"), 'r')),
              put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", "pic_pred_0001.jpg"), 'r'))],
