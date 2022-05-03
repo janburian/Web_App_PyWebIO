@@ -27,7 +27,7 @@ import json
 import distutils
 from distutils import dir_util
 
-print(scaffan.__file__)
+#print(scaffan.__file__)
 
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -276,6 +276,17 @@ def delete_zip_files():
         if item.endswith(".zip"):
             os.remove(os.path.join(dir_name, item))
 
+
+def visualize_predictions():
+    put_text("Predicted data visualization").style('font-size: 20px')
+    processed_images_list = os.listdir(os.path.join(Path(__file__).parent, "processed", "vis_predictions"))
+    for image in processed_images_list:
+        put_table([
+            [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", image), 'r'),
+                       title=image)],
+        ])
+
+
 if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "czi_files"))
     delete_content_folder(os.path.join(Path(__file__).parent, "images"))
@@ -317,11 +328,7 @@ if __name__ == "__main__":
         with put_loading("border", "primary"):
             detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent), model_name)
 
-        put_text("Predicted data visualization").style('font-size: 20px')
-        put_table([
-            [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", "pic_pred_0000.jpg"), 'r')),
-             put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_predictions", "pic_pred_0001.jpg"), 'r'))],
-        ])
+        visualize_predictions()
 
         # TODO: Visualization of predicted data
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
@@ -333,19 +340,19 @@ if __name__ == "__main__":
     elif (operation == 'Train'):
         available_models = get_available_models()
         available_models.append('upload_own')
-        model_option = choose_model()
+        #model_option = choose_model()
 
-        model_name = model_option
+        #model_name = model_option
 
-        if model_option == "upload_own":
-            model_name = save_own_model(model_option)
+        #if model_option == "upload_own":
+            #model_name = save_own_model(model_option)
 
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
 
         create_COCO_dataset(czi_files_names, user_info)
 
-        parameters = define_detectron2_parameters()
+        #parameters = define_detectron2_parameters()
 
         processed = create_directory("processed")
         cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_dataset"))
@@ -360,7 +367,7 @@ if __name__ == "__main__":
         ]) # TODO: zobrazit vsechny obrazky
 
         with put_loading("border", "primary"):
-            detectron2_testovaci.train(model_name)
+            detectron2_testovaci.train()
 
         output_path = os.path.join(Path(__file__).parent, "output")
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")

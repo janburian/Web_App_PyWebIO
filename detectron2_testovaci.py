@@ -45,24 +45,21 @@ def check_annotated_data(output_data_path, cells_metadata, dataset_dicts):
             raise Exception("Could not write image: " + img_name_final)
 
 
-def train(model_name: str):
+def train():
     from detectron2.engine import DefaultTrainer
 
     # Parameters
     cfg = get_cfg()
     cfg.MODEL.DEVICE = 'cpu'
-    config_name = os.path.splitext(model_name)[0]
-    cfg.merge_from_file(os.path.join(
-        r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation",
-        config_name + ".yaml"))
-    # TODO: choosing yaml file?
+    cfg.merge_from_file(
+        r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation\mask_rcnn_R_50_FPN_3x.yaml")
     cfg.DATASETS.TRAIN = ("cells_training",)
-    #cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset # TODO:
+    #cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset # TODO: validation dataset
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
-    #cfg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"  # initialize from model zoo
-    cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
-    cfg.SOLVER.IMS_PER_BATCH = 2
+    cfg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"  # initialize from model zoo
+    #cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
+    cfg.SOLVER.IMS_PER_BATCH = 60000
     cfg.SOLVER.BASE_LR = 0.00005
     cfg.SOLVER.MAX_ITER = 5
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128  # faster, and good enough for this toy dataset
@@ -81,10 +78,9 @@ def predict(input_data_dir, output_data_dir, model_name: str):
     config_name = os.path.splitext(model_name)[0]
     cfg.merge_from_file(os.path.join( r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation", config_name + ".yaml"))
         # TODO: choosing yaml file?
-
+    #cfg.merge_from_file(r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation\mask_rcnn_R_50_FPN_3x.yaml") # one architecture
     cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set the testing threshold for this model
-    cfg.DATASETS.TEST = ("cells_training",)
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # 1 class (cells nuclei)
     cfg.MODEL.DEVICE = 'cpu'
     predictor = DefaultPredictor(cfg)
