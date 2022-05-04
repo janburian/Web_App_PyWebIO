@@ -222,7 +222,7 @@ def get_available_models():
     return models_list
 
 
-def choose_model():
+def choose_model(available_models):
     global model_option
     model_option = select("Choose one of pretrained models or upload your own",
                           available_models, required=True)
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     if (operation == 'Predict'):
         available_models = get_available_models()
         available_models.append('upload_own')
-        model_option = choose_model()
+        model_option = choose_model(available_models)
 
         model_name = model_option
 
