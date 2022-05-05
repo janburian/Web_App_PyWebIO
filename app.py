@@ -75,12 +75,34 @@ def upload_data_page():
 
     return data
 
+def delete_model_page():
+    data = input_group('List of models to delete (optional)', [
+        checkbox("Available models", name='deleted_models', options=get_available_models()),
+        actions('', [
+            {'label': 'Delete', 'value': 'delete', 'disabled': False, 'color': 'danger'},
+            {'label': 'Reset', 'type': 'reset', 'color': 'warning'},
+            {'label': 'Continue', 'value': 'continue', 'color': 'primary'},
+        ], name='action'),
+    ])
+
+    if data['action'] == "delete":
+        models_to_delete = data['deleted_models']
+        delete_models(models_to_delete)
+        delete_model_page()
 
 def create_directory(directory_name):
     files_directory = os.path.join(Path(__file__).parent, directory_name)
     if not os.path.exists(files_directory):
         os.makedirs(files_directory, exist_ok=True)
     return files_directory
+
+
+def delete_models(models_to_delete: list):
+    path_models = os.path.join(Path(__file__).parent, "models")
+    for model in models_to_delete:
+        model_path = os.path.join(path_models, model)
+        if os.path.exists(model_path):
+            os.remove(model_path)
 
 
 def save_czi_files(czi_files):
@@ -286,6 +308,15 @@ def visualize_predictions():
                        title=image)],
         ])
 
+def visualize_annotated_data():
+    put_text("Annotated data visualization").style('font-size: 20px')
+    processed_images_list = os.listdir(os.path.join(Path(__file__).parent, "processed", "vis_train"))
+    for image in processed_images_list:
+        put_table([
+            [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", image), 'r'),
+                       title=image)],
+        ])
+
 
 if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "czi_files"))
@@ -299,6 +330,8 @@ if __name__ == "__main__":
     user_info = get_user_info()
     data = upload_data_page()
 
+    delete_model_page()
+
     czi_files = data['czi']
     operation = data['operation']
 
@@ -306,14 +339,6 @@ if __name__ == "__main__":
     czi_files_names = get_czi_file_names(czi_files)
 
     czi_to_jpg(czi_files, czi_files_names)
-
-    ''' Test
-    anim = scaffan.image.AnnotatedImage(path=os.path.join(Path(__file__).parent, "czi_files", "test.czi"))
-    view = anim.get_full_view(
-        pixelsize_mm=[0.0003, 0.0003]
-    )  # wanted pixelsize in mm in view
-    annotations = view.annotations
-    '''
 
     if (operation == 'Predict'):
         available_models = get_available_models()
@@ -330,7 +355,6 @@ if __name__ == "__main__":
 
         visualize_predictions()
 
-        # TODO: Visualization of predicted data
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
         create_zip_directory(processed_dir_path, "results.zip")
         content = open('results.zip', 'rb').read()
@@ -359,12 +383,7 @@ if __name__ == "__main__":
         with put_loading("border", "primary"):
             detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
-        put_text("Annotated data visualization").style('font-size: 20px')
-
-        put_table([
-            [put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0000.jpg"), 'r')),
-             put_image(Image.open(os.path.join(Path(__file__).parent, "processed", "vis_train", "0001.jpg"), 'r'))],
-        ]) # TODO: zobrazit vsechny obrazky
+        visualize_annotated_data()
 
         with put_loading("border", "primary"):
             detectron2_testovaci.train()
