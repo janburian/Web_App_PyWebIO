@@ -37,22 +37,15 @@ def check_email(email):
 
 
 def get_user_info():
-    put_html("""<!DOCTYPE html>
-                    <html>
-                    <head>
-                    <title>Page Title</title>
-                    </head>
-                    <body>
-                    
-                    <h1>Description</h1>
-                    <p>The main goal of this computer vision application is to detect cell nuclei in microscopic histological images.
-                    It is based on Detectron2 framework, so for the detection it uses deep neural network. 
-                    User also can train his own model through this application, too. </p>
-                    <p>The application was written in Python and it is powered by PyWebIO module.</p>
-                    
-                    <h1>How it works</h1>
-                    </body>
-                    </html>""")
+    put_html("""
+            <h1>Description</h1>
+            <p>The main goal of this computer vision application is to detect cell nuclei in microscopic histological images.
+            It is based on Detectron2 framework, so for the detection it uses deep neural network. 
+            User also can train his own model through this application, too. </p>
+            
+            <p>The application was written in Python and it is powered by PyWebIO module.</p>
+            
+            <h1>How it works</h1> """)
 
     img = Image.open("schema2.png", 'r')
     put_image(img, width='903px', height='160px')
@@ -330,8 +323,6 @@ if __name__ == "__main__":
     user_info = get_user_info()
     data = upload_data_page()
 
-    delete_model_page()
-
     czi_files = data['czi']
     operation = data['operation']
 
@@ -341,6 +332,7 @@ if __name__ == "__main__":
     czi_to_jpg(czi_files, czi_files_names)
 
     if (operation == 'Predict'):
+        delete_model_page()
         available_models = get_available_models()
         available_models.append('upload_own')
         model_option = choose_model(available_models)
@@ -373,6 +365,10 @@ if __name__ == "__main__":
 
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
+
+        number_czi_files = len(czi_files_names)
+        if number_czi_files > 1:
+            pass
 
         create_COCO_dataset(czi_files_names, user_info)
 
