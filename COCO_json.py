@@ -12,7 +12,7 @@ import scaffan.image
 from datetime import date
 
 
-def get_image_properties(dataset_directory):
+def get_image_properties(dataset_directory, images_names: list):
     """
     Returns the properties of the images (list of dictionaries) which are obligatory in COCO data format
     For example (properties of one image):
@@ -32,10 +32,9 @@ def get_image_properties(dataset_directory):
     list_image_dictionaries = []
     image_name_id = 0
 
-    while True:
-        filename_string = (
-                str(dataset_directory) + "\\" + str(image_name).zfill(4) + ".jpg"
-        )
+    index = 0
+    while index < len(images_names):
+        filename_string = os.path.join(dataset_directory, images_names[index])
         filename_path = Path(filename_string)
         if not filename_path.exists():
             break
@@ -47,12 +46,14 @@ def get_image_properties(dataset_directory):
             "id": image_name_id,
             "width": width,
             "height": height,
-            "file_name": str(image_name).zfill(4) + ".jpg",
+            "file_name": images_names[index],
         }
         list_image_dictionaries.append(image_dictionary)
 
         image_name += 1
         image_name_id += 1
+        index += 1
+
     return list_image_dictionaries
 
 
@@ -78,6 +79,7 @@ def get_category_properties(dataset_directory, filename):
     with open(str(dataset_directory) + "\\" + filename) as f:
         lines = f.readlines()
     number_lines = len(lines)
+    f.close()
 
     for i in range(number_lines):
         supercategory = lines[i].rstrip()

@@ -1,4 +1,5 @@
 import glob
+import math
 import os
 import sys
 import zipfile
@@ -27,7 +28,6 @@ import json
 import distutils
 from distutils import dir_util
 
-#print(scaffan.__file__)
 
 def check_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
@@ -135,7 +135,7 @@ def czi_to_jpg(czi_files, czi_file_names):
         index += 1
 
 
-def create_COCO_json(czi_files_names, user_info):
+def create_COCO_json(czi_files_names, images_names: list, user_info):
     # Directory of the image dataset
     dataset_directory = Path(os.path.join(Path(__file__).parent, "images"))
 
@@ -157,7 +157,7 @@ def create_COCO_json(czi_files_names, user_info):
     """
     Images
     """
-    list_image_dictionaries = COCO_json.get_image_properties(dataset_directory)
+    list_image_dictionaries = COCO_json.get_image_properties(dataset_directory, images_names)
     data.update({"images": list_image_dictionaries})
 
     """
@@ -183,24 +183,32 @@ def create_COCO_json(czi_files_names, user_info):
     return data
 
 
-def copy_images():
+def copy_images(images_names: list, COCO_dir_name: str):
     source_dir = os.path.join(Path(__file__).parent, "images")
-    destination_dir = os.path.join(Path(__file__).parent, "COCO_dataset", "images")
-    distutils.dir_util.copy_tree(source_dir, destination_dir)
+    os.mkdir(os.path.join(Path(__file__).parent, COCO_dir_name, "images"))
+    destination_dir = os.path.join(Path(__file__).parent, COCO_dir_name, "images")
+
+    index = 0
+    while index < len(images_names):
+        image_name = images_names[index]
+        full_file_name = os.path.join(source_dir, image_name)
+        if os.path.exists(full_file_name):
+            shutil.copy(full_file_name, destination_dir)
+            index += 1
 
 
-def create_COCO_dataset(czi_files_names, user_info):
+def create_COCO_dataset(czi_files_names, images_names: list, user_info, COCO_dir_name: str):
     name_json = "trainval.json"
-    json_COCO = create_COCO_json(czi_files_names, user_info)
+    json_COCO = create_COCO_json(czi_files_names, images_names, user_info)
 
-    COCO_directory = create_directory("COCO_dataset")
+    COCO_directory = create_directory(COCO_dir_name)
 
     # Creating .json file
     with open(os.path.join(COCO_directory, name_json), "w", encoding="utf-8") as f:
         json.dump(json_COCO, f, ensure_ascii=False, indent=4)
         f.close()
 
-    copy_images()
+    copy_images(images_names, COCO_dir_name)
 
 
 def get_categories():
@@ -316,7 +324,9 @@ if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "images"))
     delete_content_folder(os.path.join(Path(__file__).parent, "processed"))
     delete_content_folder(os.path.join(Path(__file__).parent, "output"))
-    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_dataset"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_train"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_validation"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_complete"))
 
     delete_zip_files()
 
@@ -354,8 +364,8 @@ if __name__ == "__main__":
         pywebio.session.hold()
 
     elif (operation == 'Train'):
-        available_models = get_available_models()
-        available_models.append('upload_own')
+        #available_models = get_available_models()
+        #available_models.append('upload_own')
         #model_option = choose_model()
 
         #model_name = model_option
@@ -366,16 +376,38 @@ if __name__ == "__main__":
         categories = get_categories().split(", ")
         create_txt_categories_file(categories)
 
-        number_czi_files = len(czi_files_names)
-        if number_czi_files > 1:
-            pass
+        if len(czi_files) > 1:
+            number_train = math.floor((len(czi_files) / 100) * 80)
+            number_validate = len(czi_files) - number_train
 
-        create_COCO_dataset(czi_files_names, user_info)
+            czi_names_train = []
+            czi_names_validate = []
+
+            for i in range(number_train):
+                czi_names_train.append(czi_files_names[i])
+
+            czi_names_validate = list(set(czi_files_names).symmetric_difference(set(czi_names_train)))
+
+            images_list = os.listdir(os.path.join(Path(__file__).parent, "images"))
+            images_names_train = []
+
+            for i in range(len(czi_names_train)):
+                images_names_train.append(images_list[i])
+
+            images_names_validate = list(set(images_names_train).symmetric_difference(set(images_list)))
+            images_names_validate.remove("categories.txt")
+
+            create_COCO_dataset(czi_names_train, images_names_train, user_info, "COCO_train")
+            create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_validation")
+
+        images_names_all = os.listdir(os.path.join(Path(__file__).parent, "images"))
+        images_names_all.remove("categories.txt")
+        create_COCO_dataset(czi_files_names, images_names_all, user_info, "COCO_complete") # complete COCO (training + validation data)
 
         #parameters = define_detectron2_parameters()
 
         processed = create_directory("processed")
-        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_dataset"))
+        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_dataset")) # TODO: training and validation datasets
         with put_loading("border", "primary"):
             detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
@@ -386,20 +418,31 @@ if __name__ == "__main__":
 
         output_path = os.path.join(Path(__file__).parent, "output")
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
-        COCO_path = os.path.join(Path(__file__).parent, "COCO_dataset")
+        COCO_path_complete = os.path.join(Path(__file__).parent, "COCO_complete")
+        COCO_path_train = os.path.join(Path(__file__).parent, "COCO_train")
+        COCO_path_validation = os.path.join(Path(__file__).parent, "COCO_validate")
 
         create_zip_directory(output_path, "output.zip")
         create_zip_directory(processed_dir_path, "data.zip")
-        create_zip_directory(COCO_path, "COCO.zip")
+        create_zip_directory(COCO_path_complete, "COCO_complete.zip")
+        create_zip_directory(COCO_path_train, "COCO_training.zip")
+        create_zip_directory(COCO_path_validation, "COCO_validation.zip")
 
-        content = open('output.zip', 'rb').read()
-        put_file('output.zip', content, 'Download trained model/s.')
+        content_output = open('output.zip', 'rb').read()
+        put_file('output.zip', content_output, 'Download trained model/s.')
 
-        content = open('data.zip', 'rb').read()
-        put_file('data.zip', content, 'Download image data with annotations.')
+        content_data = open('data.zip', 'rb').read()
+        put_file('data.zip', content_data, 'Download image data with annotations.')
 
-        content = open('COCO.zip', 'rb').read()
-        put_file('COCO.zip', content, 'Download custom COCO dataset.')
+        content_COCO_compl = open('COCO_complete.zip', 'rb').read()
+        put_file('COCO_complete.zip', content_COCO_compl, 'Download complete custom COCO dataset.')
+
+        content_COCO_tra = open('COCO_training.zip', 'rb').read()
+        put_file('COCO_training.zip', content_COCO_tra, 'Download training COCO dataset.')
+
+        content_COCO_val = open('COCO_validation.zip', 'rb').read()
+        put_file('COCO_validation.zip', content_COCO_val, 'Download validation COCO dataset.')
+
 
         pywebio.session.hold()
 
