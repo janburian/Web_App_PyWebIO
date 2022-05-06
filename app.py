@@ -293,11 +293,11 @@ def merge_zip_file(zips:list):
 
 def delete_zip_files():
     dir_name = os.path.join(Path(__file__).parent)
-    test = os.listdir(dir_name)
+    files = os.listdir(dir_name)
 
-    for item in test:
-        if item.endswith(".zip"):
-            os.remove(os.path.join(dir_name, item))
+    for file in files:
+        if file.endswith(".zip"):
+            os.remove(os.path.join(dir_name, file))
 
 
 def visualize_predictions():
@@ -407,7 +407,11 @@ if __name__ == "__main__":
         #parameters = define_detectron2_parameters()
 
         processed = create_directory("processed")
-        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_dataset")) # TODO: training and validation datasets
+
+        COCO_train_path = os.path.join(Path(__file__).parent, "COCO_train")
+        COCO_validation_path = os.path.join(Path(__file__).parent, "COCO_validation")
+
+        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(COCO_train_path, COCO_validation_path) # TODO: training and validation datasets
         with put_loading("border", "primary"):
             detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
@@ -420,7 +424,7 @@ if __name__ == "__main__":
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
         COCO_path_complete = os.path.join(Path(__file__).parent, "COCO_complete")
         COCO_path_train = os.path.join(Path(__file__).parent, "COCO_train")
-        COCO_path_validation = os.path.join(Path(__file__).parent, "COCO_validate")
+        COCO_path_validation = os.path.join(Path(__file__).parent, "COCO_validation")
 
         create_zip_directory(output_path, "output.zip")
         create_zip_directory(processed_dir_path, "data.zip")

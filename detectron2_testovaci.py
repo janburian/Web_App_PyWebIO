@@ -25,11 +25,14 @@ def create_directory(directory_name):
     return files_directory
 
 
-def register_coco_instances(input_data_path):
+def register_coco_instances(COCO_train_path, COCO_validation_path):
     from detectron2.data.datasets import register_coco_instances
-    register_coco_instances("cells_training", {}, os.path.join(input_data_path, "trainval.json"), os.path.join(input_data_path, "images"))
+    register_coco_instances("cells_training", {}, os.path.join(COCO_train_path, "trainval.json"), os.path.join(COCO_train_path, "images"))
     cells_metadata = MetadataCatalog.get("cells_training")
     dataset_dicts = DatasetCatalog.get("cells_training")
+
+    if os.path.exists(COCO_validation_path):
+        register_coco_instances("cells_validation", {}, os.path.join(COCO_validation_path, "trainval.json"), os.path.join(COCO_validation_path, "images"))
 
     return cells_metadata, dataset_dicts
 
@@ -54,8 +57,10 @@ def train():
     cfg.merge_from_file(
         r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation\mask_rcnn_R_50_FPN_3x.yaml")
     cfg.DATASETS.TRAIN = ("cells_training",)
-    #cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset # TODO: validation dataset
-    cfg.DATASETS.TEST = ()
+    if len(os.listdir(os.path.join(Path(__file__).parent, "czi_files"))) > 1:
+        cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset # TODO: validation dataset
+    else:
+        cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
     cfg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"  # initialize from model zoo
     #cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
