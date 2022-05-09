@@ -319,6 +319,40 @@ def visualize_annotated_data():
         ])
 
 
+def put_downloadable_files():
+    content_output = open('output.zip', 'rb').read()
+    put_file('output.zip', content_output, 'Download trained model/s.')
+    content_data = open('data.zip', 'rb').read()
+    put_file('data.zip', content_data, 'Download image data with annotations.')
+    content_COCO_compl = open('COCO_complete.zip', 'rb').read()
+    put_file('COCO_complete.zip', content_COCO_compl, 'Download complete custom COCO dataset.')
+    content_COCO_tra = open('COCO_training.zip', 'rb').read()
+    put_file('COCO_training.zip', content_COCO_tra, 'Download training COCO dataset.')
+    content_COCO_val = open('COCO_validation.zip', 'rb').read()
+    put_file('COCO_validation.zip', content_COCO_val, 'Download validation COCO dataset.')
+
+
+def create_trainining_validation_datasets():
+    number_train = math.floor((len(czi_files) / 100) * 80)
+    number_validate = len(czi_files) - number_train
+    czi_names_train = []
+
+    for i in range(number_train):
+        czi_names_train.append(czi_files_names[i])
+
+    czi_names_validate = list(set(czi_files_names).symmetric_difference(set(czi_names_train)))
+    images_list = os.listdir(os.path.join(Path(__file__).parent, "images"))
+    images_names_train = []
+    for i in range(len(czi_names_train)):
+        images_names_train.append(images_list[i])
+
+    images_names_validate = list(set(images_names_train).symmetric_difference(set(images_list)))
+    images_names_validate.remove("categories.txt")
+
+    create_COCO_dataset(czi_names_train, images_names_train, user_info, "COCO_train")
+    create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_validation")
+
+
 if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "czi_files"))
     delete_content_folder(os.path.join(Path(__file__).parent, "images"))
@@ -377,28 +411,7 @@ if __name__ == "__main__":
         create_txt_categories_file(categories)
 
         if len(czi_files) > 1:
-            number_train = math.floor((len(czi_files) / 100) * 80)
-            number_validate = len(czi_files) - number_train
-
-            czi_names_train = []
-            czi_names_validate = []
-
-            for i in range(number_train):
-                czi_names_train.append(czi_files_names[i])
-
-            czi_names_validate = list(set(czi_files_names).symmetric_difference(set(czi_names_train)))
-
-            images_list = os.listdir(os.path.join(Path(__file__).parent, "images"))
-            images_names_train = []
-
-            for i in range(len(czi_names_train)):
-                images_names_train.append(images_list[i])
-
-            images_names_validate = list(set(images_names_train).symmetric_difference(set(images_list)))
-            images_names_validate.remove("categories.txt")
-
-            create_COCO_dataset(czi_names_train, images_names_train, user_info, "COCO_train")
-            create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_validation")
+            create_trainining_validation_datasets()
 
         images_names_all = os.listdir(os.path.join(Path(__file__).parent, "images"))
         images_names_all.remove("categories.txt")
@@ -411,7 +424,11 @@ if __name__ == "__main__":
         COCO_train_path = os.path.join(Path(__file__).parent, "COCO_train")
         COCO_validation_path = os.path.join(Path(__file__).parent, "COCO_validation")
 
-        cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(COCO_train_path, COCO_validation_path) # TODO: training and validation datasets
+        if len(czi_files) > 1:
+            cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(COCO_train_path, COCO_validation_path)
+        else:
+            cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_complete"),
+                                                                                         COCO_validation_path)
         with put_loading("border", "primary"):
             detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
@@ -432,21 +449,7 @@ if __name__ == "__main__":
         create_zip_directory(COCO_path_train, "COCO_training.zip")
         create_zip_directory(COCO_path_validation, "COCO_validation.zip")
 
-        content_output = open('output.zip', 'rb').read()
-        put_file('output.zip', content_output, 'Download trained model/s.')
-
-        content_data = open('data.zip', 'rb').read()
-        put_file('data.zip', content_data, 'Download image data with annotations.')
-
-        content_COCO_compl = open('COCO_complete.zip', 'rb').read()
-        put_file('COCO_complete.zip', content_COCO_compl, 'Download complete custom COCO dataset.')
-
-        content_COCO_tra = open('COCO_training.zip', 'rb').read()
-        put_file('COCO_training.zip', content_COCO_tra, 'Download training COCO dataset.')
-
-        content_COCO_val = open('COCO_validation.zip', 'rb').read()
-        put_file('COCO_validation.zip', content_COCO_val, 'Download validation COCO dataset.')
-
+        put_downloadable_files()
 
         pywebio.session.hold()
 
