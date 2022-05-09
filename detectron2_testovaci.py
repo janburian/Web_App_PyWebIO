@@ -6,6 +6,8 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
+from matplotlib import pyplot as plt
+
 # import some common libraries
 import numpy as np
 import cv2
@@ -25,14 +27,14 @@ def create_directory(directory_name):
     return files_directory
 
 
-def register_coco_instances(COCO_train_path, COCO_validation_path):
+def register_coco_instances(COCO_train_path, COCO_test_path):
     from detectron2.data.datasets import register_coco_instances
     register_coco_instances("cells_training", {}, os.path.join(COCO_train_path, "trainval.json"), os.path.join(COCO_train_path, "images"))
     cells_metadata = MetadataCatalog.get("cells_training")
     dataset_dicts = DatasetCatalog.get("cells_training")
 
-    if os.path.exists(COCO_validation_path):
-        register_coco_instances("cells_validation", {}, os.path.join(COCO_validation_path, "trainval.json"), os.path.join(COCO_validation_path, "images"))
+    if os.path.exists(COCO_test_path):
+        register_coco_instances("cells_test", {}, os.path.join(COCO_test_path, "trainval.json"), os.path.join(COCO_test_path, "images"))
 
     return cells_metadata, dataset_dicts
 
@@ -58,7 +60,7 @@ def train():
         r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation\mask_rcnn_R_50_FPN_3x.yaml")
     cfg.DATASETS.TRAIN = ("cells_training",)
     if len(os.listdir(os.path.join(Path(__file__).parent, "czi_files"))) > 1:
-        cfg.DATASETS.TEST = ("cells_validation",)  # no metrics implemented for this dataset, validation dataset # TODO: validation dataset
+        cfg.DATASETS.TEST = ("cells_test",)
     else:
         cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
@@ -120,6 +122,7 @@ def predict(input_data_dir, output_data_dir, model_name: str):
             raise Exception("Could not write image: " + img_name_final)
 
     create_outputs_json(img_names_list, output_data_dir, outputs_list, model_name)
+    create_masks(outputs_list)
 
 
 def create_outputs_json(img_names_list, output_data_dir, outputs_list, model_name):
@@ -159,3 +162,11 @@ def create_outputs_json(img_names_list, output_data_dir, outputs_list, model_nam
         json.dump(outputs_dict, f, ensure_ascii=False, indent=4)
         f.close()
 
+def create_masks(outputs_list):
+    path = create_directory("masks_prediction")
+    for i in range(len(outputs_list)):
+        instances = outputs_list[i]["instances"]
+        masks = instances.get("pred_masks")
+        masks_numpy = masks.numpy()
+        plt.imshow(np.sum(masks_numpy.astype(int), axis=0))
+        plt.savefig(os.path.join(path, "mask_" + str(i).zfill(4)))
