@@ -328,11 +328,11 @@ def put_downloadable_files():
     put_file('COCO_complete.zip', content_COCO_compl, 'Download complete custom COCO dataset.')
     content_COCO_tra = open('COCO_training.zip', 'rb').read()
     put_file('COCO_training.zip', content_COCO_tra, 'Download training COCO dataset.')
-    content_COCO_val = open('COCO_validation.zip', 'rb').read()
-    put_file('COCO_validation.zip', content_COCO_val, 'Download validation COCO dataset.')
+    content_COCO_val = open('COCO_test.zip', 'rb').read()
+    put_file('COCO_test.zip', content_COCO_val, 'Download validation COCO dataset.')
 
 
-def create_trainining_validation_datasets():
+def create_training_test_datasets():
     number_train = math.floor((len(czi_files) / 100) * 80)
     number_validate = len(czi_files) - number_train
     czi_names_train = []
@@ -350,7 +350,7 @@ def create_trainining_validation_datasets():
     images_names_validate.remove("categories.txt")
 
     create_COCO_dataset(czi_names_train, images_names_train, user_info, "COCO_train")
-    create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_validation")
+    create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_test")
 
 
 if __name__ == "__main__":
@@ -359,8 +359,9 @@ if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "processed"))
     delete_content_folder(os.path.join(Path(__file__).parent, "output"))
     delete_content_folder(os.path.join(Path(__file__).parent, "COCO_train"))
-    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_validation"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "COCO_test"))
     delete_content_folder(os.path.join(Path(__file__).parent, "COCO_complete"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "masks_prediction"))
 
     delete_zip_files()
 
@@ -411,7 +412,7 @@ if __name__ == "__main__":
         create_txt_categories_file(categories)
 
         if len(czi_files) > 1:
-            create_trainining_validation_datasets()
+            create_training_test_datasets()
 
         images_names_all = os.listdir(os.path.join(Path(__file__).parent, "images"))
         images_names_all.remove("categories.txt")
@@ -422,7 +423,7 @@ if __name__ == "__main__":
         processed = create_directory("processed")
 
         COCO_train_path = os.path.join(Path(__file__).parent, "COCO_train")
-        COCO_validation_path = os.path.join(Path(__file__).parent, "COCO_validation")
+        COCO_validation_path = os.path.join(Path(__file__).parent, "COCO_test")
 
         if len(czi_files) > 1:
             cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(COCO_train_path, COCO_validation_path)
@@ -441,13 +442,13 @@ if __name__ == "__main__":
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
         COCO_path_complete = os.path.join(Path(__file__).parent, "COCO_complete")
         COCO_path_train = os.path.join(Path(__file__).parent, "COCO_train")
-        COCO_path_validation = os.path.join(Path(__file__).parent, "COCO_validation")
+        COCO_path_validation = os.path.join(Path(__file__).parent, "COCO_test")
 
         create_zip_directory(output_path, "output.zip")
         create_zip_directory(processed_dir_path, "data.zip")
         create_zip_directory(COCO_path_complete, "COCO_complete.zip")
         create_zip_directory(COCO_path_train, "COCO_training.zip")
-        create_zip_directory(COCO_path_validation, "COCO_validation.zip")
+        create_zip_directory(COCO_path_validation, "COCO_test.zip")
 
         put_downloadable_files()
 
