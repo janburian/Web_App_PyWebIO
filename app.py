@@ -14,6 +14,7 @@ import re
 from PIL import Image
 
 from pathlib import Path
+import pathlib
 
 import COCO_json
 import detectron2_testovaci
@@ -22,11 +23,7 @@ path_to_script = Path("~/GitHub/scaffan").expanduser()
 print(os.path.exists(path_to_script))
 sys.path.insert(0, str(path_to_script))
 import scaffan.image
-import imma.image
-
 import json
-import distutils
-from distutils import dir_util
 
 
 def check_email(email):
@@ -70,7 +67,7 @@ def upload_data_page():
 
 def delete_model_page():
     data = input_group('List of models to delete (optional)', [
-        checkbox("Available models", name='deleted_models', options=get_available_models()),
+        checkbox("Available models", name='deleted_models', options=get_specific_files("models", ".pth")),
         actions('', [
             {'label': 'Delete', 'value': 'delete', 'disabled': False, 'color': 'danger'},
             {'label': 'Reset', 'type': 'reset', 'color': 'warning'},
@@ -98,8 +95,8 @@ def delete_models(models_to_delete: list):
             os.remove(model_path)
 
 
-def save_czi_files(czi_files):
-    czi_files_directory = create_directory("czi_files")
+def save_czi_files(czi_files, directory_name: str):
+    czi_files_directory = create_directory(directory_name)
 
     for file in czi_files:
         open(os.path.join(czi_files_directory, file['filename']), 'wb').write(file['content'])
@@ -114,12 +111,12 @@ def get_czi_file_names(images):
     return czi_file_names
 
 
-def czi_to_jpg(czi_files, czi_file_names):
-    images_directory = create_directory("images")
+def czi_to_jpg(czi_files, czi_file_names, imgs_directory_name: str, czi_directory_name: str):
+    images_directory = create_directory(imgs_directory_name)
 
     index = 0
     while index < len(czi_files):
-        fn_path = Path(os.path.join(Path(__file__).parent, "czi_files", czi_file_names[index]))
+        fn_path = Path(os.path.join(Path(__file__).parent, czi_directory_name, czi_file_names[index]))
         fn_str = str(fn_path)
         if not fn_path.exists():
             break
@@ -135,12 +132,12 @@ def czi_to_jpg(czi_files, czi_file_names):
         index += 1
 
 
-def create_COCO_json(czi_files_names, images_names: list, user_info):
+def create_COCO_json(czi_files_names, images_names: list, user_info, images_directory: str, czi_files_directory: str):
     # Directory of the image dataset
-    dataset_directory = Path(os.path.join(Path(__file__).parent, "images"))
+    dataset_directory = images_directory
 
     # Directory of the .czi files
-    czi_files_directory = Path(os.path.join(Path(__file__).parent, "czi_files"))  # path to .czi files directory
+    czi_files_directory = czi_files_directory  # path to .czi files directory
 
     data = {}
 
@@ -183,8 +180,7 @@ def create_COCO_json(czi_files_names, images_names: list, user_info):
     return data
 
 
-def copy_images(images_names: list, COCO_dir_name: str):
-    source_dir = os.path.join(Path(__file__).parent, "images")
+def copy_images(images_names: list, COCO_dir_name: str, source_dir: str):
     os.mkdir(os.path.join(Path(__file__).parent, COCO_dir_name, "images"))
     destination_dir = os.path.join(Path(__file__).parent, COCO_dir_name, "images")
 
@@ -197,9 +193,9 @@ def copy_images(images_names: list, COCO_dir_name: str):
             index += 1
 
 
-def create_COCO_dataset(czi_files_names, images_names: list, user_info, COCO_dir_name: str):
+def create_COCO_dataset(czi_files_names, images_names: list, user_info, COCO_dir_name: str, images_directory: str, czi_files_directory: str):
     name_json = "trainval.json"
-    json_COCO = create_COCO_json(czi_files_names, images_names, user_info)
+    json_COCO = create_COCO_json(czi_files_names, images_names, user_info, images_directory, czi_files_directory)
 
     COCO_directory = create_directory(COCO_dir_name)
 
@@ -208,7 +204,7 @@ def create_COCO_dataset(czi_files_names, images_names: list, user_info, COCO_dir
         json.dump(json_COCO, f, ensure_ascii=False, indent=4)
         f.close()
 
-    copy_images(images_names, COCO_dir_name)
+    copy_images(images_names, COCO_dir_name, images_directory)
 
 
 def get_categories():
@@ -216,8 +212,8 @@ def get_categories():
     return categories
 
 
-def create_txt_categories_file(list_categories):
-    txt_file_path = os.path.join(Path(__file__).parent, "images", "categories.txt")
+def create_save_txt_categories_file(list_categories, directory_name: str):
+    txt_file_path = os.path.join(Path(__file__).parent, directory_name, "categories.txt")
     with open(txt_file_path, 'w') as f:
         for category in list_categories:
             f.write(category)
@@ -236,13 +232,13 @@ def define_detectron2_parameters():
     return parameters
 
 
-def get_available_models():
-    models = glob.glob(os.path.join(Path(__file__).parent, "models", "*.pth"))
-    models_list = []
-    for model in models:
-        models_list.append(os.path.basename(model))
+def get_specific_files(directory_name: str, ending: str):
+    files = glob.glob(os.path.join(Path(__file__).parent, directory_name, "*" + ending))
+    files_list = []
+    for file in files:
+        files_list.append(os.path.basename(file))
 
-    return models_list
+    return files_list
 
 
 def choose_model(available_models):
@@ -310,7 +306,7 @@ def visualize_predictions():
         ])
 
 def visualize_annotated_data():
-    put_text("Annotated data visualization").style('font-size: 20px')
+    put_text("Annotated training data visualization").style('font-size: 20px')
     processed_images_list = os.listdir(os.path.join(Path(__file__).parent, "processed", "vis_train"))
     for image in processed_images_list:
         put_table([
@@ -349,8 +345,24 @@ def create_training_test_datasets():
     images_names_validate = list(set(images_names_train).symmetric_difference(set(images_list)))
     images_names_validate.remove("categories.txt")
 
-    create_COCO_dataset(czi_names_train, images_names_train, user_info, "COCO_train")
-    create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_test")
+    images_directory = os.path.join(Path(__file__).parent, "images")
+    czi_files_directory = os.path.join(Path(__file__).parent, "czi_files")
+
+    create_COCO_dataset(czi_names_train, images_names_train, user_info, "COCO_train", images_directory, czi_files_directory)
+    create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_test", images_directory, czi_files_directory)
+
+def upload_data_test_dataset_page():
+    data = input_group("Upload annotated files to create the test dataset in .czi format, otherwise the test dataset will be created automatically:", [
+        file_upload("Upload data", accept=".czi", multiple=True, required=False, name="czi"),
+        actions('', [
+            #{'label': 'Submit', 'type': 'submit', 'value': 'submit'},
+            {'label': 'Continue', 'value': 'continue', 'color': 'primary'},
+        ], name='action'),
+    ])
+
+    return data
+
+
 
 
 if __name__ == "__main__":
@@ -362,6 +374,8 @@ if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "COCO_test"))
     delete_content_folder(os.path.join(Path(__file__).parent, "COCO_complete"))
     delete_content_folder(os.path.join(Path(__file__).parent, "masks_prediction"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "images_test"))
+    delete_content_folder(os.path.join(Path(__file__).parent, "czi_files_test"))
 
     delete_zip_files()
 
@@ -371,14 +385,14 @@ if __name__ == "__main__":
     czi_files = data['czi']
     operation = data['operation']
 
-    save_czi_files(czi_files)
+    save_czi_files(czi_files, "czi_files")
     czi_files_names = get_czi_file_names(czi_files)
 
-    czi_to_jpg(czi_files, czi_files_names)
+    czi_to_jpg(czi_files, czi_files_names, "images", "czi_files")
 
     if (operation == 'Predict'):
         delete_model_page()
-        available_models = get_available_models()
+        available_models = get_specific_files("models", ".pth")
         available_models.append('upload_own')
         model_option = choose_model(available_models)
 
@@ -408,15 +422,40 @@ if __name__ == "__main__":
         #if model_option == "upload_own":
             #model_name = save_own_model(model_option)
 
+        data_test = upload_data_test_dataset_page() # TODO: test dataset
         categories = get_categories().split(", ")
-        create_txt_categories_file(categories)
+        czi_files_test = data_test['czi']
 
-        if len(czi_files) > 1:
-            create_training_test_datasets()
+        if len(czi_files_test) > 0: # user wants to use his own test dataset
+            save_czi_files(czi_files_test, "czi_files_test")
+            czi_files_names_test = get_czi_file_names(czi_files_test)
+            czi_to_jpg(czi_files_test, czi_files_names_test, "images_test", "czi_files_test")
+            create_save_txt_categories_file(categories, "images_test")
+            create_save_txt_categories_file(categories, "images")
 
-        images_names_all = os.listdir(os.path.join(Path(__file__).parent, "images"))
-        images_names_all.remove("categories.txt")
-        create_COCO_dataset(czi_files_names, images_names_all, user_info, "COCO_complete") # complete COCO (training + validation data)
+            images_names_test = get_specific_files("images_test", ".jpg")
+            images_names_train = get_specific_files("images", ".jpg")
+
+            images_test_directory = os.path.join(Path(__file__).parent, "images_test")
+            czi_files_test_directory = os.path.join(Path(__file__).parent, "czi_files_test")
+
+            images_train_directory = os.path.join(Path(__file__).parent, "images")
+            czi_files_train_directory = os.path.join(Path(__file__).parent, "czi_files")
+
+            create_COCO_dataset(czi_files_names_test, images_names_test, user_info, "COCO_test", images_test_directory, czi_files_test_directory)
+            create_COCO_dataset(czi_files_names, images_names_train, user_info, "COCO_train", images_train_directory, czi_files_train_directory)
+
+        else: # dataset is created automatically
+            create_save_txt_categories_file(categories, "images")
+            if len(czi_files) > 1:
+                create_training_test_datasets()
+
+            images_names_all = os.listdir(os.path.join(Path(__file__).parent, "images"))
+            images_names_all.remove("categories.txt")
+
+            images_directory = os.path.join(Path(__file__).parent, "images")
+            czi_files_directory = os.path.join(Path(__file__).parent, "czi_files")
+            create_COCO_dataset(czi_files_names, images_names_all, user_info, "COCO_complete", images_directory, czi_files_directory) # complete COCO (training + validation data)
 
         #parameters = define_detectron2_parameters()
 
