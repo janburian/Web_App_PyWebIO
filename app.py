@@ -13,6 +13,9 @@ from pywebio.output import *
 import re
 from PIL import Image
 
+from pywebio.pin import *
+from pywebio.utils import random_str
+
 from pathlib import Path
 import pathlib
 
@@ -362,7 +365,55 @@ def upload_data_test_dataset_page():
 
     return data
 
+def copy_file(filename: str, source_dir: str, destination_dir: str, new_filename: str):
+    full_filename = os.path.join(source_dir, filename)
+    full_filename_new = os.path.join(source_dir, new_filename)
+    if os.path.exists(full_filename):
+        os.rename(full_filename, full_filename_new)
+        shutil.copy(full_filename_new, destination_dir)
 
+
+def popup_input(pins, title='Please write name of the trained model. After that the trained model will be added to available models directory.'):
+    """Show a form in popup window.
+
+    :param list pins: pin output list.
+    :param str title: model title.
+    :return: return the form value as dict, return None when user cancel the form.
+    """
+    if not isinstance(pins, list):
+        pins = [pins]
+
+    pin_names = [
+        p.spec['input']['name']
+        for p in pins
+    ]
+    action_name = 'action_' + random_str(10)
+    pins.append(put_actions(action_name, buttons=[
+        {'label': 'Submit', 'value': 'submit', 'disabled': False},
+    ]))
+    popup(title=title, content=pins, closable=False)
+
+    change_info = pin_wait_change(action_name)
+    result = None
+    if change_info['name'] == action_name and change_info['value']:
+        result = {name: pin[name] for name in pin_names}
+
+    model_name = result['model_name']
+    action = change_info['value']
+
+    if action == 'submit' and model_name != "":
+       close_popup()
+       return model_name
+
+    else:
+        popup_input([put_input(name='model_name')])
+
+
+def get_model_name():
+    pins = [put_input(name='model_name')]
+    model_name = popup_input(pins)
+
+    return model_name
 
 
 if __name__ == "__main__":
@@ -476,6 +527,9 @@ if __name__ == "__main__":
 
         with put_loading("border", "primary"):
             detectron2_testovaci.train()
+
+        trained_model_name = get_model_name()
+        copy_file("model_final.pth", os.path.join(Path(__file__).parent, "output"), os.path.join(Path(__file__).parent, "models"), trained_model_name + ".pth")
 
         output_path = os.path.join(Path(__file__).parent, "output")
         processed_dir_path = os.path.join(Path(__file__).parent, "processed")
