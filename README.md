@@ -19,3 +19,6 @@ The application was written in Python and it is powered by PyWebIO module.
 * PyWebIO (pip3 install -U pywebio)
 
 All of these modules need to be installed in the same Python environment. 
+
+## Sofware for creating annotations and processing microscopic images
+Zeiss ZEN (https://www.zeiss.com/microscopy/int/products/microscope-software/zen-lite.html)
