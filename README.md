@@ -13,6 +13,7 @@ The application was written in Python and it is powered by PyWebIO module.
 
 
 ## Installation of important modules to run the app
+* conda (installation: https://docs.conda.io/en/latest/miniconda.html)
 * scaffan (installation steps: https://github.com/mjirik/scaffan/blob/master/README.md)
 * detectron2 (installation steps: https://github.com/mjirik/tutorials/blob/main/detectron_windows/readme.md)
 * PyWebIO (pip3 install -U pywebio)
