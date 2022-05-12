@@ -23,7 +23,7 @@ def delete_models(models_to_delete: list):
             os.remove(model_path)
 
 
-def popup_input(pins, title='Modify list of models'):
+def popup_input(pins, title='Please write name of the trained model. After that the trained model will be added to available models directory.'):
     """Show a form in popup window.
 
     :param list pins: pin output list.
@@ -39,8 +39,7 @@ def popup_input(pins, title='Modify list of models'):
     ]
     action_name = 'action_' + random_str(10)
     pins.append(put_actions(action_name, buttons=[
-        {'label': 'Delete', 'value': 'delete', 'disabled': False},
-        {'label': 'Cancel', 'value': 'cancel', 'color': 'danger'},
+        {'label': 'Submit', 'value': 'submit', 'disabled': False},
     ]))
     popup(title=title, content=pins, closable=False)
 
@@ -49,20 +48,21 @@ def popup_input(pins, title='Modify list of models'):
     if change_info['name'] == action_name and change_info['value']:
         result = {name: pin[name] for name in pin_names}
 
+    model_name = result['model_name']
     action = change_info['value']
-    choose_action(action, result)
+    choose_action(action, model_name)
 
 
-def choose_action(action, result):
-    if action == 'cancel':
-        close_popup()
-    if action == 'delete':
-        models_to_delete = result["chosen_models"]
-        delete_models(models_to_delete)
-        popup_input([put_checkbox(name='chosen_models', options=get_available_models())])
+def choose_action(action, model_name):
+    if action == 'submit' and model_name != "":
+       close_popup()
+
+    else:
+        popup_input([put_input(name='model_name')])
 
 
-pins = [put_checkbox(name='chosen_models', options=get_available_models())]
+#pins = [put_checkbox(name='chosen_models', options=get_available_models())]
+pins = [put_input(name='model_name')]
 popup_input(pins)
 
 pywebio.session.hold()
