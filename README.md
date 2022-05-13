@@ -8,8 +8,19 @@ The application was written in Python and it is powered by PyWebIO module.
 ## How the app works
 ![alt text](https://github.com/janburian/Web_App_PyWebIO/blob/main/schema2.png?raw=true)
 
-* Step 1: 
-* Step 2: 
+* Step 1: User uploads the data in .czi format (with or without the annotations)
+* Step 2: User chooses the option if he wants to predict the data or train the new model 
+
+Predict
+* Step 3: Now, there is option to delete some of the available models. This step is optional and can be skipped. 
+* Step 4: User chooses the model which should be used to predict the data. 
+* Step 5: Finally data with the predictions are visualized. User can download the results. 
+
+Train 
+(data with the annotations are needed in this case)
+* Step 3: User can upload annotated files in .czi format to create the test/validation dataset, otherwise the test dataset will be created automatically. 
+* Step 4: User writes the category of the dataset. 
+* Step 5: Training dataset is visualized. And after a while the results can be downloaded. The trained model is added to available models for prediction. Name of trained model is defined by the user.    
 
 
 ## Installation of important modules to run the app
