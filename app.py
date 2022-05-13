@@ -45,9 +45,10 @@ def get_user_info():
             
             <p>The application was written in Python and it is powered by PyWebIO module.</p>
             
-            <h1>How it works</h1> """)
+            <h1>How it works (prediction)</h1> """)
 
     img = Image.open("schema2.png", 'r')
+    #img = Image.open("schema_train_pred.png", 'r')
     put_image(img, width='903px', height='160px')
 
     info = input_group("User info", [
@@ -355,7 +356,7 @@ def create_training_test_datasets():
     create_COCO_dataset(czi_names_validate, images_names_validate, user_info, "COCO_test", images_directory, czi_files_directory)
 
 def upload_data_test_dataset_page():
-    data = input_group("Upload annotated files to create the test dataset in .czi format, otherwise the test dataset will be created automatically:", [
+    data = input_group("User can upload annotated files in .czi format to create the test/validation dataset, otherwise the test dataset will be created automatically: ", [
         file_upload("Upload data", accept=".czi", multiple=True, required=False, name="czi"),
         actions('', [
             #{'label': 'Submit', 'type': 'submit', 'value': 'submit'},
