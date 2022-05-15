@@ -5,6 +5,8 @@ It is based on Detectron2 framework, so for the detection it uses deep neural ne
 
 The application was written in Python and it is powered by PyWebIO module.
 
+The main application file is app.py. 
+
 ## How the app works
 ![alt text](https://github.com/janburian/Web_App_PyWebIO/blob/main/schema_train_pred.png?raw=true)
 
