@@ -247,7 +247,7 @@ def get_specific_files(directory_name: str, ending: str):
 
 def choose_model(available_models):
     global model_option
-    model_option = select("Choose one of pretrained models or upload your own",
+    model_option = select("Choose one of pretrained models: ",
                           available_models, required=True)
     return model_option
 
@@ -445,13 +445,13 @@ if __name__ == "__main__":
     if (operation == 'Predict'):
         delete_model_page()
         available_models = get_specific_files("models", ".pth")
-        available_models.append('upload_own')
+        #available_models.append('upload_own')
         model_option = choose_model(available_models)
 
         model_name = model_option
 
-        if model_option == "upload_own":
-            model_name = save_own_model(model_option)
+        #if model_option == "upload_own":
+            #model_name = save_own_model(model_option)
 
         with put_loading("border", "primary"):
             detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent), model_name)

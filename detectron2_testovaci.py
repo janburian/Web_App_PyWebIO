@@ -83,9 +83,11 @@ def train():
 def predict(input_data_dir, output_data_dir, model_name: str):
     cfg = get_cfg()
     config_name = os.path.splitext(model_name)[0]
-    cfg.merge_from_file(os.path.join( r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation", config_name + ".yaml"))
-        # TODO: choosing yaml file?
-    #cfg.merge_from_file(r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation\mask_rcnn_R_50_FPN_3x.yaml") # one architecture
+    pretrained_models_original = ["mask_rcnn_R_101_C4_3x.pth", "mask_rcnn_R_101_DC5_3x.pth", "mask_rcnn_R_101_FPN_3x.pth", "mask_rcnn_R_50_C4_3x.pth", "mask_rcnn_R_50_DC5_3x.pth", "mask_rcnn_R_50_FPN_3x.pth"]
+    if model_name in pretrained_models_original:
+        cfg.merge_from_file(os.path.join( r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation", config_name + ".yaml"))
+    else:
+        cfg.merge_from_file(r"C:\Users\janbu\miniconda3\envs\scaffan_2\Lib\site-packages\detectron2\model_zoo\configs\COCO-InstanceSegmentation\mask_rcnn_R_50_FPN_3x.yaml") # one architecture
     cfg.MODEL.WEIGHTS = os.path.join(Path(__file__).parent, "models", model_name)
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set the testing threshold for this model
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # 1 class (cells nuclei)
