@@ -46,7 +46,7 @@ def get_user_info():
             
             <h1>How it works (prediction)</h1> """)
 
-    img = Image.open(os.path.join(Path(__file__).parent, "graphics", "graphics/schema2.png"), 'r')
+    img = Image.open(os.path.join(Path(__file__).parent, "graphics/schema2.png"), 'r')
     #img = Image.open("schema_train_pred.png", 'r')
     put_image(img, width='903px', height='160px')
 
