@@ -10,12 +10,11 @@ import re
 
 from pathlib import Path
 
-import COCO_json
+from src import COCO_json
 
 path_to_script = Path("~/projects/scaffan/").expanduser()
 sys.path.insert(0, str(path_to_script))
 import scaffan.image
-import imma.image
 
 import json
 import distutils

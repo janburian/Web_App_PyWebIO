@@ -1,7 +1,4 @@
-import os
-
-import pytest
-import detectron2_testovaci
+from src import detectron2_testovaci
 from pathlib import Path
 
 def test_cv():
