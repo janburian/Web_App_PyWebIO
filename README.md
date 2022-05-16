@@ -8,7 +8,7 @@ The application was written in Python and it is powered by PyWebIO module.
 The main application file is app.py. 
 
 ## How the app works
-![alt text](https://github.com/janburian/Web_App_PyWebIO/blob/main/schema_train_pred.png?raw=true)
+![alt text](https://github.com/janburian/Web_App_PyWebIO/blob/main/src/schema_train_pred.png?raw=true)
 
 * Step 1: User uploads the data in .czi format (with or without the annotations)
 * Step 2: User chooses the option if he wants to predict the data or train the new model 
