@@ -54,7 +54,7 @@ def get_user_info():
         input('Enter your username', name='username', required=True),
         input('Enter your email', name='email', type=TEXT, required=True, validate=check_email)
     ])
-    put_text(info['username'], info['email'])
+    #put_text(info['username'], info['email'])
 
     return info
 
@@ -211,7 +211,7 @@ def create_COCO_dataset(czi_files_names, images_names: list, user_info, COCO_dir
 
 
 def get_categories():
-    categories = input("Please, write category/categories separated by commas: ", required=True)
+    categories = input("Please, write category of the data: ", required=True)
     return categories
 
 
