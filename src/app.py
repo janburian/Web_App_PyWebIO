@@ -19,7 +19,7 @@ from pywebio.utils import random_str
 from pathlib import Path
 
 import COCO_json
-import detectron2_testovaci
+import detectron2_backend
 
 path_to_script = Path("~/GitHub/scaffan").expanduser()
 print(os.path.exists(path_to_script))
@@ -453,7 +453,7 @@ if __name__ == "__main__":
             #model_name = save_own_model(model_option)
 
         with put_loading("border", "primary"):
-            detectron2_testovaci.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent), model_name)
+            detectron2_backend.predict(os.path.join(Path(__file__).parent / "images"), os.path.join(Path(__file__).parent), model_name)
 
         visualize_predictions()
 
@@ -516,17 +516,17 @@ if __name__ == "__main__":
         COCO_validation_path = os.path.join(Path(__file__).parent, "COCO_test")
 
         if len(czi_files) > 1:
-            cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(COCO_train_path, COCO_validation_path)
+            cells_metadata, dataset_dicts = detectron2_backend.register_coco_instances(COCO_train_path, COCO_validation_path)
         else:
-            cells_metadata, dataset_dicts = detectron2_testovaci.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_complete"),
-                                                                                         COCO_validation_path)
+            cells_metadata, dataset_dicts = detectron2_backend.register_coco_instances(os.path.join(Path(__file__).parent, "COCO_complete"),
+                                                                                       COCO_validation_path)
         with put_loading("border", "primary"):
-            detectron2_testovaci.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
+            detectron2_backend.check_annotated_data(os.path.join(Path(__file__).parent, "processed"), cells_metadata, dataset_dicts)
 
         visualize_annotated_data()
 
         with put_loading("border", "primary"):
-            detectron2_testovaci.train()
+            detectron2_backend.train()
 
         trained_model_name = get_model_name()
         copy_file("model_final.pth", os.path.join(Path(__file__).parent, "output"), os.path.join(Path(__file__).parent, "models"), trained_model_name + ".pth")
