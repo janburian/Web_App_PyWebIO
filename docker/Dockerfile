@@ -21,23 +21,28 @@ RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
 # install dependencies
 # See https://pytorch.org/ for other options if you use a different version of CUDA
 RUN pip install --user tensorboard cmake   # cmake from apt-get is too old
-RUN pip install --no-cache-dir --user torch==1.10 torchvision==0.11.1 -f https://download.pytorch.org/whl/cu111/torch_stable.html
+RUN pip install --no-cache-dir --user torch==1.9.0+cpu torchvision==0.10.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN pip install --user 'git+https://github.com/facebookresearch/fvcore'
 # install detectron2
 RUN git clone https://github.com/facebookresearch/detectron2 --branch v0.5 detectron2_repo
 # set FORCE_CUDA because during `docker build` cuda is not accessible
-ENV FORCE_CUDA="1"
+#ENV FORCE_CUDA="1"
 # This will by default build detectron2 for all common cuda architectures and take a lot more time,
 # because inside `docker build`, there is no way to tell which architecture will be used.
 ARG TORCH_CUDA_ARCH_LIST="Kepler;Kepler+Tesla;Maxwell;Maxwell+Tegra;Pascal;Volta;Turing"
-ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
+#ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
 
 RUN pip install --user -e detectron2_repo
 
 # Set a fixed model cache directory.
 ENV FVCORE_CACHE="/tmp"
 WORKDIR /home/appuser/detectron2_repo
+
+RUN git clone https://github.com/mjirik/scaffan
+RUN pip install --user -e scaffan
+
+RUN pip install --user pywebio io3d simpleitk imma pandas loguru xlrd scipy==1.5 exsu czifile openslides glob math os shutil sys zipfile re PIL
 
 # run detectron2 under user "appuser":
 # wget http://images.cocodataset.org/val2017/000000439715.jpg -O input.jpg
