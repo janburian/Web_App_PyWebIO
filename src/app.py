@@ -10,6 +10,7 @@ import skimage.io
 
 from pywebio.input import *
 from pywebio.output import *
+import pywebio.platform
 import re
 from PIL import Image
 
@@ -549,3 +550,5 @@ def main():
 
         pywebio.session.hold()
 
+
+pywebio.platform.tornado.start_server(main, port=6060, max_payload_size='4G')
