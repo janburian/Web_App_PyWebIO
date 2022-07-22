@@ -331,7 +331,7 @@ def put_downloadable_files():
     put_file('COCO_test.zip', content_COCO_val, 'Download validation COCO dataset.')
 
 
-def create_training_test_datasets():
+def create_training_test_datasets(czi_files, czi_files_names, user_info):
     number_train = math.floor((len(czi_files) / 100) * 80)
     number_validate = len(czi_files) - number_train
     czi_names_train = []
@@ -416,7 +416,7 @@ def get_model_name():
     return model_name
 
 
-if __name__ == "__main__":
+def main():
     delete_content_folder(os.path.join(Path(__file__).parent, "czi_files"))
     delete_content_folder(os.path.join(Path(__file__).parent, "images"))
     delete_content_folder(os.path.join(Path(__file__).parent, "processed"))
@@ -429,6 +429,8 @@ if __name__ == "__main__":
     delete_content_folder(os.path.join(Path(__file__).parent, "czi_files_test"))
 
     delete_zip_files()
+
+
 
     user_info = get_user_info()
     data = upload_data_page()
@@ -499,7 +501,7 @@ if __name__ == "__main__":
         else: # dataset is created automatically
             create_save_txt_categories_file(categories, "images")
             if len(czi_files) > 1:
-                create_training_test_datasets()
+                create_training_test_datasets(czi_files, czi_files_names, user_info)
 
             images_names_all = os.listdir(os.path.join(Path(__file__).parent, "images"))
             images_names_all.remove("categories.txt")
