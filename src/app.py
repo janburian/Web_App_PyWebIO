@@ -547,8 +547,7 @@ def main():
         create_zip_directory(COCO_path_validation, "COCO_test.zip")
 
         put_downloadable_files()
-
-        pywebio.session.hold()
+        #pywebio.session.hold()
 
 
 pywebio.platform.tornado.start_server(main, port=6060, max_payload_size='4G')
